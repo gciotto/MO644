@@ -28,7 +28,7 @@ int main (){
 			if (i != j) {
 				if (unsorted_array[i] > unsorted_array[j])
 					index++;
-				if (unsorted_array[i] == unsorted_array[j] && i > j)
+				else if (unsorted_array[i] == unsorted_array[j] && i > j)
 					index++;
 			}
 
@@ -40,7 +40,7 @@ int main (){
 	for (int i = 0; i < size_array; i++)
 		printf("%.2f ", sorted_array[i]);
 
-	printf("\n%f", end);
+	printf("\n%f\n", end);
 
 	free(unsorted_array);
 	free(sorted_array);
