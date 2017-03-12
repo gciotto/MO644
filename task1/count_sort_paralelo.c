@@ -1,8 +1,20 @@
+/*
+*   Task #1 of the course MO644 - Parallel Programming
+*   This task consists in parallelizing the count sorting algorithm.
+*
+*   Gustavo CIOTTO PINTON RA 117136
+*/
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <omp.h>
 
+/*
+*   Parallel implementation of count sorting algorithm. Besides the array and its length,
+*   it receives the number of thread that should be created by OpenMP.
+*   Returns the total time spent to sort the array.
+*/
 double count_sort_paralelo(double a[], int n, int n_threads) {
 	int i, j, count;
 	double *temp;
@@ -10,7 +22,11 @@ double count_sort_paralelo(double a[], int n, int n_threads) {
 
 	temp = (double *)malloc(n*sizeof(double));
 
+    /* Starts counting the time */
 	start = omp_get_wtime();
+    /* Pragma directive to parallelize for block. Three variables are shared among the threads: the temporary
+       and value arrays, and its size. In addition, three other are private: the local indexes i and j, and 
+       the new calculated position of a[i] */
 # 	pragma omp parallel for num_threads(n_threads) default(none) shared(n, a, temp) private(i, j, count)
 	for (i = 0; i < n; i++) {
 		count = 0;
@@ -19,6 +35,7 @@ double count_sort_paralelo(double a[], int n, int n_threads) {
 				count++;
 			else if (a[j] == a[i] && j < i)
 				count++;
+        /* Since temp[count] can only be accessed by exactly one thread, it does not need omp critical directive. */
 		temp[count] = a[i]; 
 	}
 	end = omp_get_wtime();
@@ -31,6 +48,7 @@ double count_sort_paralelo(double a[], int n, int n_threads) {
 	return duracao;
 }
 
+/* Provided code */
 int main(int argc, char * argv[]) {
 	int i, n, nt;
 	double  * a, t_s;
@@ -47,7 +65,7 @@ int main(int argc, char * argv[]) {
 	for(i=0;i<n;i++)
 		scanf("%lf",&a[i]);
 	
-	/* chama as funcoes de count sort em paralelo e em serial */
+	/* chama as funcao de count sort em paralelo */
 	t_s = count_sort_paralelo(a, n, nt);
 	
 	/* Imprime o vetor ordenado */
