@@ -23,11 +23,7 @@ test: build
 	@$(foreach test_in, ${TESTS}, \
 			echo ${test_in}; \
 			./${SOURCE} < ${test_in} > $(basename ${test_in}).${EXTENSION_PARALLEL}; \
-			gprof ${GPROF_FLAGS} ${SOURCE} gmon.out > ${SOURCE}-$(basename ${test_in}).profile; \
-			rm gmon.out; \
 			./${SOURCE_SERIAL} < ${test_in} > $(basename ${test_in}).${EXTENSION_SERIAL}; \
-			gprof ${GPROF_FLAGS} ${SOURCE_SERIAL} gmon.out > ${SOURCE_SERIAL}-$(basename ${test_in}).profile; \
-			rm gmon.out; \
 			diff $(basename ${test_in}).${EXTENSION_PARALLEL} $(basename ${test_in}).${EXTENSION_SERIAL};)
 
 clean:
