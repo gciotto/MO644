@@ -87,6 +87,7 @@ int main(void) {
 	pi = 4*in / ((double) nval);
 	printf("%lf\n%lu\n",pi,duracao);
 
+	free(id);
 	free(monte_carlo_threads);
 	pthread_mutex_destroy(&monte_carlo_mutex);
 
