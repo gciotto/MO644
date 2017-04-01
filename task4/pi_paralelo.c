@@ -5,17 +5,23 @@
 /* Pthread API */
 #include <pthread.h>
 
+/* Avoiding rand_r warning, according Breno Leite's post in our courses' group. */
+#define _GNU_SOURCE
+
 /* Shared estimative */
 long long unsigned int in = 0;
 /* Number of threads and iterations */
-unsigned int n_threads, nval;
+unsigned int n_threads, nval, *id;
 pthread_t *monte_carlo_threads;
+/* Mutex to synchronize data */
 pthread_mutex_t monte_carlo_mutex;
 
+/* Monte Carlo's pi estimative computing thread */
 void *monte_carlo_pi_thread(void *rank) {
 
-	unsigned int my_rank = (unsigned int) rank;
+	unsigned int my_rank = *((unsigned int*) rank);
 
+	/* Computes loop fraction this thread should do */
 	int local_size = nval / n_threads,
 	    i_start = my_rank * local_size,
 	    i_end = (my_rank == n_threads - 1 ? nval - 1 : (my_rank + 1) * local_size - 1);
@@ -30,6 +36,7 @@ void *monte_carlo_pi_thread(void *rank) {
 		if (d <= 1) local_in += 1;
 	}
 
+	/* Aggregates local_in to shared variable */
 	pthread_mutex_lock(&monte_carlo_mutex);
 	in += local_in;
 	pthread_mutex_unlock(&monte_carlo_mutex);
@@ -38,13 +45,16 @@ void *monte_carlo_pi_thread(void *rank) {
 
 }
 
+/* Creates and starts all threads to compute pi estimative */
 void monte_carlo_pi() {
 
 	unsigned int i;
 
 	/* Creates all threads, according to the first value read from stdin */
-	for (i = 0; i < n_threads; i++)
-		pthread_create(&monte_carlo_threads[i], NULL, monte_carlo_pi_thread, (void*) i);
+	for (i = 0; i < n_threads; i++) {
+		id[i] = i;
+		pthread_create(&monte_carlo_threads[i], NULL, monte_carlo_pi_thread, (void*) &id[i]);
+	}
 
 	/* Waits for all threads to end before returning result */
 	for (i = 0; i < n_threads; i++)
@@ -61,7 +71,10 @@ int main(void) {
 
 	/* Allocates memory for thread handlers */
 	monte_carlo_threads = (pthread_t*) malloc (n_threads * sizeof(pthread_t));
+	/* Creates mutex to protect final data */
 	pthread_mutex_init(&monte_carlo_mutex, NULL);
+	/* Array of thread ids : avoids cast warnings on pthread_create calls */
+	id = (unsigned int *) malloc (n_threads * sizeof(unsigned int));
 
 	srand (time(NULL));
 
