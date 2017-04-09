@@ -3,7 +3,7 @@ GPROF_FLAGS		:=
 CFLAGS 			:= -std=c99 -pedantic -Wall
 CFLAGS_PARALLEL	:= -lpthread
 OCFLAG			:= 
-SOURCE			:= senha-paralelo
+SOURCE			:= senha-paralelo-control-thread
 SOURCE_SERIAL 		:= senha-serial
 EXTENSION_SERIAL	:= serial
 EXTENSION_PARALLEL	:= parallel
@@ -22,7 +22,7 @@ ${SOURCE}:
 test: build
 	@$(foreach test_in, ${TESTS}, \
 			echo ${test_in}; \
-			./${SOURCE} < ${test_in} > $(basename ${test_in}).${EXTENSION_PARALLEL};)
+			./${SOURCE} < ${test_in};)
 #			./${SOURCE_SERIAL} < ${test_in} > $(basename ${test_in}).${EXTENSION_SERIAL}; \
 #			diff $(basename ${test_in}).${EXTENSION_PARALLEL} $(basename ${test_in}).${EXTENSION_SERIAL};)
 
