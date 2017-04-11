@@ -16,6 +16,7 @@
 
 #define PASSWD_SIZE 500000
 #define BLOCK_SIZE 5000
+#define DEFAULT_START 10000
 
 struct queue_element {
 	unsigned int i_start, i_end;
@@ -113,7 +114,8 @@ FILE *popen(const char *command, const char *type);
    threads. */
 void *break_zip_control_thread (void *arg) {
 
-	int i = 0;
+	/* According to the exercise, the password starts from i = 10000. */
+	int i = DEFAULT_START;
 	
 	while (!found) {
 
@@ -241,53 +243,60 @@ Machine Info:
 Architecture:          x86_64
 CPU op-mode(s):        32-bit, 64-bit
 Byte Order:            Little Endian
-CPU(s):                4
-On-line CPU(s) list:   0-3
+CPU(s):                8
+On-line CPU(s) list:   0-7
 Thread(s) per core:    2
-Core(s) per socket:    2
+Core(s) per socket:    4
 Socket(s):             1
 NUMA node(s):          1
 Vendor ID:             GenuineIntel
 CPU family:            6
-Model:                 42
-Model name:            Intel(R) Core(TM) i3-2330M CPU @ 2.20GHz
-Stepping:              7
-CPU MHz:               2199.865
-CPU max MHz:           2200.0000
-CPU min MHz:           800.0000
-BogoMIPS:              4392.29
+Model:                 94
+Model name:            Intel(R) Xeon(R) CPU E3-1270 v5 @ 3.60GHz
+Stepping:              3
+CPU MHz:               800.024
+CPU max MHz:           4000,0000
+CPU min MHz:           800,0000
+BogoMIPS:              7202.00
 Virtualization:        VT-x
 L1d cache:             32K
 L1i cache:             32K
 L2 cache:              256K
-L3 cache:              3072K
-NUMA node0 CPU(s):     0-3
-Flags:                 fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush dts acpi mmx fxsr sse sse2 ss ht tm pbe syscall nx rdtscp lm constant_tsc arch_perfmon pebs bts rep_good nopl xtopology nonstop_tsc aperfmperf pni pclmulqdq dtes64 monitor ds_cpl vmx est tm2 ssse3 cx16 xtpr pdcm pcid sse4_1 sse4_2 x2apic popcnt tsc_deadline_timer xsave avx lahf_lm epb tpr_shadow vnmi flexpriority ept vpid xsaveopt dtherm arat pln pts
+L3 cache:              8192K
+NUMA node0 CPU(s):     0-7
+Flags:                 fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush dts acpi mmx fxsr sse sse2 ss ht tm pbe syscall nx pdpe1gb rdtscp lm constant_tsc art arch_perfmon pebs bts rep_good nopl xtopology nonstop_tsc aperfmperf tsc_known_freq pni pclmulqdq dtes64 monitor ds_cpl vmx smx est tm2 ssse3 sdbg fma cx16 xtpr pdcm pcid sse4_1 sse4_2 x2apic movbe popcnt tsc_deadline_timer aes xsave avx f16c rdrand lahf_lm abm 3dnowprefetch epb intel_pt tpr_shadow vnmi flexpriority ept vpid fsgsbase tsc_adjust bmi1 hle avx2 smep bmi2 erms invpcid rtm mpx rdseed adx smap clflushopt xsaveopt xsavec xgetbv1 xsaves dtherm ida arat pln pts hwp hwp_notify hwp_act_window hwp_epp
+
 
 Tests results:
 
 arq1.in:
 Senha:10000
-28.393772
+0.009257
+Speedup: 5719.24446
 
 arq2.in:
 Senha:100000
-283.982113
+119.072239
+Speedup: 3.25051
 
 arq3.in:
 Senha:450000
-976.768524
+333.466017
+Speedup: 7.18077
 
 arq4.in:
 Senha:310000
-662.435029
+302.835095
+Speedup: 5.012969
 
 arq5.in:
 Senha:65000
-81.679958
+23.988789
+Speedup: 13.55020
 
 arq6.in:
 Senha:245999
-535.963749
+175.049148
+Speedup: 6.32518
 
 */

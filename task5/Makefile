@@ -1,7 +1,7 @@
 GPROF			:= 
 GPROF_FLAGS		:= 
 CFLAGS 			:= -std=c99 -pedantic -Wall
-CFLAGS_PARALLEL	:= -lpthread
+CFLAGS_PARALLEL		:= -lpthread
 OCFLAG			:= 
 SOURCE			:= senha-paralelo-control-thread
 SOURCE_SERIAL 		:= senha-serial
@@ -22,8 +22,8 @@ ${SOURCE}:
 test: build
 	@$(foreach test_in, ${TESTS}, \
 			echo ${test_in}; \
-			./${SOURCE} < ${test_in};)
-#			./${SOURCE_SERIAL} < ${test_in} > $(basename ${test_in}).${EXTENSION_SERIAL}; \
+			./${SOURCE} < ${test_in}> $(basename ${test_in}).${EXTENSION_PARALLEL}; \
+			./${SOURCE_SERIAL} < ${test_in} > $(basename ${test_in}).${EXTENSION_SERIAL};)
 #			diff $(basename ${test_in}).${EXTENSION_PARALLEL} $(basename ${test_in}).${EXTENSION_SERIAL};)
 
 clean:
