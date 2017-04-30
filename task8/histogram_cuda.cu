@@ -4,6 +4,7 @@
 */
 #include <stdio.h>
 #include <stdlib.h>
+#include <sys/time.h>
 #include <math.h>
 
 #define COMMENT "Histogram_GPU"
@@ -21,6 +22,16 @@ typedef struct {
 	int x, y;
 	PPMPixel *data;
 } PPMImage;
+
+double rtclock()
+{
+    struct timezone Tzp;
+    struct timeval Tp;
+    int stat;
+    stat = gettimeofday (&Tp, &Tzp);
+    if (stat != 0) printf("Error return from gettimeofday: %d",stat);
+    return(Tp.tv_sec + Tp.tv_usec*1.0e-6);
+}
 
 
 static PPMImage *readPPM(const char *filename) {
@@ -92,16 +103,17 @@ static PPMImage *readPPM(const char *filename) {
 	return img;
 }
 
-__global__ void cudaHistogram (PPMImage *image, int size, int *h) {
+__global__ void cudaHistogram (PPMPixel *data, int size, int *h) {
 
 	int i = threadIdx.x + blockIdx.x * blockDim.x,
 		stride = blockDim.x * gridDim.x; /* Gives the number of threads in a grid */ 
 
 	while (i < size) {
 
-		float r = floor(image->data[i].red * 4 / 256),
-			  g = floor(image->data[i].green * 4 / 256),
-			  b = floor(image->data[i].blue * 4 / 256);
+		/* Implicit conversion from float to int gives the same result of floor() function */
+		int r = ( (float) (data[i].red * 4) / 256),
+		    g = ( (float) (data[i].green * 4) / 256),
+		    b = ( (float) (data[i].blue * 4) / 256);
 
 		int x = r * 16 + g * 4 + b;
 
@@ -116,25 +128,27 @@ int main(int argc, char *argv[]) {
 
 	if( argc != 2 ) {
 		printf("Too many or no one arguments supplied.\n");
+		return 0;
 	}
 
-	double t_start, t_end;
 	int i, n;
 	char *filename = argv[1]; //Recebendo o arquivo!;
+	double start, end;
 	
 	//scanf("%s", filename);
 	PPMImage *image = readPPM(filename);
 	n = image->x * image->y;
+	
+        int *h = (int*)malloc(sizeof(int) * 64);
+
+	/* We consider in the execution delay the memory allocation time */
+	start = rtclock();
 
 	/* Allocating memory for image data in the device */
-	int image_size = 2 * sizeof(int) + n * sizeof(PPMPixel);
-	PPMImage *cuda_image;
+	int image_size = n * sizeof(PPMPixel);
+	PPMPixel *cuda_image;
 	cudaMalloc((void**) &cuda_image, image_size);
-	cudaMemcpy(cuda_image, image, image_size, cudaMemcpyHostToDevice);
-
-	int *h = (int*)malloc(sizeof(int) * 64);
-	//Inicializar h
-	for(i=0; i < 64; i++) h[i] = 0.0;
+	cudaMemcpy(cuda_image, image->data, image_size, cudaMemcpyHostToDevice);
 
 	/* Allocating memory for histogram in the device */
 	int *cuda_h;
@@ -149,11 +163,15 @@ int main(int argc, char *argv[]) {
 	/* Copying computed result from device memory */
 	cudaMemcpy(h, cuda_h, sizeof(int) * 64, cudaMemcpyDeviceToHost);
 
+	/* As cudaMemcpy is a blocking call, we do not need to call cudaThreadSynchronize() */
+	end = rtclock();
 
 	for (i = 0; i < 64; i++){
 		printf("%0.3f ", (float) h[i] / n);
 	}
 	printf("\n");
+
+	printf("\n%0.6lfs\n", end - start);
 	
 	/* Cleaning everything up */
 	free(h);

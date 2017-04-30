@@ -160,6 +160,6 @@ int main(int argc, char *argv[]) {
 		printf("%0.3f ", h[i]);
 	}
 	printf("\n");
-	//fprintf(stdout, "\n%0.6lfs\n", t_end - t_start);  
+	fprintf(stdout, "\n%0.6lfs\n", t_end - t_start);
 	free(h);
 }
