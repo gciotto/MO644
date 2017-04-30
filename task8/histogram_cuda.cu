@@ -205,3 +205,17 @@ int main(int argc, char *argv[]) {
 	cudaFree(cuda_image);
 	cudaFree(cuda_h);
 }
+
+/*
+
+Time table:
+							arq1.ppm	arq2.ppm	arq3.ppm
+tempo_serial				0.342149s	0.608602s	1.813922s
+tempo_GPU_criar_buffer		0.288812s	0.292572s	0.312226s
+tempo_GPU_offload_enviar	0.000826s	0.001253s	0.004878s
+tempo_kernel				0.001099s	0.003102s	0.011870s
+tempo_GPU_offload_receber	0.000024s	0.000022s	0.000035s
+tempo_GPU_total				0.290761s	0.296949s	0.329009s
+speedup						1.17674		2.04952		5.51329
+
+*/
