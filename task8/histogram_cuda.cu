@@ -133,15 +133,20 @@ int main(int argc, char *argv[]) {
 
 	int i, n;
 	char *filename = argv[1]; //Recebendo o arquivo!;
-	double start, end;
+
+#ifdef PRINT_TIME
+	double start, end, cuda_malloc_t, cuda_copy_t, cuda_kernel_t;
+#endif
 	
 	PPMImage *image = readPPM(filename);
 	n = image->x * image->y;
 	
-    int *h = (int*)malloc(sizeof(int) * 64);
+	int *h = (int*)malloc(sizeof(int) * 64);
 
+#ifdef PRINT_TIME
 	/* We consider in the execution delay the memory allocation time */
 	start = rtclock();
+#endif
 
 	/* Allocating memory for image data in the device */
 	int image_size = n * sizeof(PPMPixel);
@@ -153,36 +158,45 @@ int main(int argc, char *argv[]) {
 	cudaMalloc((void**) &cuda_h, 64 * sizeof(int));
 	cudaMemset(cuda_h, 0, 64 * sizeof(int));
 
-	double cuda_malloc_t = rtclock();
+#ifdef PRINT_TIME
+	cuda_malloc_t = rtclock();
+#endif
 
 	cudaMemcpy(cuda_image, image->data, image_size, cudaMemcpyHostToDevice);
 
-	double cuda_copy_t = rtclock();
+#ifdef PRINT_TIME
+	cuda_copy_t = rtclock();
+#endif
 
 	/* Computes how many blocks will be used. */
 	int cuda_blocks = ceil ( (float) n / THREAD_PER_BLOCK );
 
 	cudaHistogram <<< cuda_blocks, THREAD_PER_BLOCK >>> (cuda_image, n, cuda_h);
 
+#ifdef PRINT_TIME
 	cudaThreadSynchronize();
 
-	double cuda_kernel_t = rtclock();
+	cuda_kernel_t = rtclock();
+#endif
 
 	/* Copying computed result from device memory */
 	cudaMemcpy(h, cuda_h, sizeof(int) * 64, cudaMemcpyDeviceToHost);
 
+#ifdef PRINT_TIME
 	/* As cudaMemcpy is a blocking call, we do not need to call cudaThreadSynchronize() */
 	end = rtclock();
+#endif
 
 	for (i = 0; i < 64; i++){
 		printf("%0.3f ", (float) h[i] / n);
 	}
 	printf("\n");
 
+#ifdef PRINT_TIME
 	printf("\nBuffer:%0.6lfs\nEnviar:%0.6lfs\nKernel:%0.6lfs\nReceber:%0.6lfs\nTotal: %0.6lfs\n", 
 			cuda_malloc_t - start, cuda_copy_t - cuda_malloc_t, cuda_kernel_t - cuda_copy_t, 
 			end - cuda_kernel_t, end - start);
-	
+#endif
 	/* Cleaning everything up */
 	free(h);
 	free(image->data);
