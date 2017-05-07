@@ -166,9 +166,9 @@ __global__ void cudaSmoothing (PPMPixel *data_in, PPMPixel *data_out, int rows, 
 
 		}
 
-        data_out[i].red = total_red / ( MASK_WIDTH * MASK_WIDTH );
-        data_out[i].blue = total_blue / ( MASK_WIDTH * MASK_WIDTH );
-        data_out[i].green = total_green / ( MASK_WIDTH * MASK_WIDTH );
+	    data_out[i].red = total_red / ( MASK_WIDTH * MASK_WIDTH );
+	    data_out[i].blue = total_blue / ( MASK_WIDTH * MASK_WIDTH );
+	    data_out[i].green = total_green / ( MASK_WIDTH * MASK_WIDTH );
 	}
 
 }
@@ -179,35 +179,33 @@ int main(int argc, char *argv[]) {
         printf("Too many or no one arguments supplied.\n");
     }
 
-    double t_start, t_end;
-    int i;
+//    double t_start, t_end;
     char *filename = argv[1]; //Recebendo o arquivo!;
-
     PPMImage *image = readPPM(filename);
     PPMImage *image_output = readPPM(filename);
 
-	/* Number of elements in the image */
-	n = image->x * image->y;
+    /* Number of elements in the image */
+    int n = image->x * image->y;
 
-	/* Allocating memory for image data in the device */
-	int image_size = n * sizeof(PPMPixel);
-	PPMPixel *cuda_image_data;
-	cudaMalloc((void**) &cuda_image_data, image_size);
+    /* Allocating memory for image data in the device */
+    int image_size = n * sizeof(PPMPixel);
+    PPMPixel *cuda_image_data;
+    cudaMalloc((void**) &cuda_image_data, image_size);
 
-	/* Copying image data to the device */
-	cudaMemcpy(cuda_image_data, image->data, image_size, cudaMemcpyHostToDevice);
+    /* Copying image data to the device */
+    cudaMemcpy(cuda_image_data, image->data, image_size, cudaMemcpyHostToDevice);
 
-	/* Allocating memory for image result in the device */
-	PPMPixel *cuda_image_out;
-	cudaMalloc((void**) &cuda_image_data, image_size);
+    /* Allocating memory for image result in the device */
+    PPMPixel *cuda_image_out;
+    cudaMalloc((void**) &cuda_image_out, image_size);
 
-	/* Computes how many blocks will be used. */
-	int cuda_blocks = ceil ( (float) n / THREAD_PER_BLOCK );
+    /* Computes how many blocks will be used. */
+    int cuda_blocks = ceil ( (float) n / THREAD_PER_BLOCK );
 
-	cudaSmoothing <<< cuda_blocks, THREAD_PER_BLOCK >>> (cuda_image, cuda_image_out, image->x, image->y);
+    cudaSmoothing <<< cuda_blocks, THREAD_PER_BLOCK >>> (cuda_image_data, cuda_image_out, image->x, image->y);
 
-	/* Copying computed result from device memory */
-	cudaMemcpy(image_output->data, cuda_image_out, image_size, cudaMemcpyDeviceToHost);
+    /* Copying computed result from device memory */
+    cudaMemcpy(image_output->data, cuda_image_out, image_size, cudaMemcpyDeviceToHost);
 
     writePPM(image_output);
 
@@ -216,6 +214,6 @@ int main(int argc, char *argv[]) {
     free(image_output->data);
     free(image_output);
 
-	cudaFree(cuda_image);
-	cudaFree(cuda_image_out);
+    cudaFree(cuda_image_data);
+    cudaFree(cuda_image_out);
 }

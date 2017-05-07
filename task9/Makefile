@@ -18,7 +18,7 @@ ${SOURCE}:
 test: build
 	@$(foreach test_in, ${TESTS}, \
 			echo ${test_in}; \
-			./${SOURCE} ${test_in}> $(basename ${test_in}).${EXTENSION_PARALLEL}; \
+			./${SOURCE} ${test_in} > $(basename ${test_in}).${EXTENSION_PARALLEL}; \
 			./${SOURCE_SERIAL} ${test_in} > $(basename ${test_in}).${EXTENSION_SERIAL}; \
 			diff $(basename ${test_in}).${EXTENSION_PARALLEL} $(basename ${test_in}).${EXTENSION_SERIAL};)
 
