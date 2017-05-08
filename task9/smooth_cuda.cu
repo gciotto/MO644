@@ -9,8 +9,10 @@
 
 #include <cuda.h>
 
-#define THREAD_PER_BLOCK 32 /* Tesla k40 supports 1024 threads per block */
+#define THREAD_PER_BLOCK 1024 /* Tesla k40 supports 1024 threads per block */
 #define RADIUS (MASK_WIDTH-1)/2
+
+#define PIXEL(R,G,B) ( (PPMPixel) { .red = (R), .green = (G), .blue = (B)})
 
 typedef struct {
     unsigned char red, green, blue;
@@ -113,7 +115,7 @@ void writePPM(PPMImage *img) {
 }
 
 
-__global__ void cudaSmoothing (PPMPixel *data_in, PPMPixel *data_out, int rows, int columns) {
+__global__ void cudaSmoothing (PPMPixel *data_in, PPMPixel *data_out, int columns, int rows) {
 
 	__shared__ PPMPixel shared_data [MASK_WIDTH][THREAD_PER_BLOCK + 2 * RADIUS];
 
@@ -128,47 +130,54 @@ __global__ void cudaSmoothing (PPMPixel *data_in, PPMPixel *data_out, int rows, 
 		/* Populating shared memory */
 		for (j = 0; j < MASK_WIDTH; j++) {
 
-			int row_index = i + (j - RADIUS) * rows;
+			int col_index = i + (j - RADIUS) * columns;
 
-			if (row_index >= 0 && row_index < n)
-				shared_data [j][shared_i] = data_in [row_index];
+			shared_data [j][shared_i] = PIXEL(0,0,0);
+
+			if (col_index >= 0 && col_index < n)
+				shared_data [j][shared_i] = data_in [col_index];
 
 			if (threadIdx.x < RADIUS) {
 
-				if (row_index - RADIUS >= 0)
-					shared_data [j][shared_i - RADIUS] = data_in [row_index - RADIUS];
+				shared_data [j][shared_i - RADIUS] = PIXEL(0,0,0);
+				shared_data [j][shared_i + THREAD_PER_BLOCK] = PIXEL(0,0,0);
 
-				if (row_index + THREAD_PER_BLOCK < n)
-					shared_data [j][shared_i + THREAD_PER_BLOCK] = data_in [row_index + THREAD_PER_BLOCK];
+				if ((col_index - RADIUS) >= 0)
+					shared_data [j][shared_i - RADIUS] = data_in [col_index - RADIUS];
+
+				if ((col_index + THREAD_PER_BLOCK) < n) 
+					shared_data [j][shared_i + THREAD_PER_BLOCK] = data_in [col_index + THREAD_PER_BLOCK];
 			}
 
 		}
 
-		/* Ensure all threads updated the shared memory */
+		/* Ensures all threads updated the shared memory */
 		__syncthreads();
 
 		total_red = total_blue = total_green = 0;
+
+		int left_border = i - (i % columns),
+			right_border = i + columns - (i % columns);
 
 		/* Iterates over lines */
 		for (j = 0; j < MASK_WIDTH; j++) {
 			
 			/* Iterates over columns */
-			for (k = threadIdx.x - RADIUS; k <= threadIdx.x + RADIUS; k++) {
+			for (k = - RADIUS; k <= RADIUS; k++) {
 
-				if (k >= 0 && k < (THREAD_PER_BLOCK + RADIUS)){
+				if (i + k >= left_border && i + k < right_border) {
 
-					total_red += shared_data[j][k].red;
-					total_blue += shared_data[j][k].blue;
-					total_green += shared_data[j][k].green;
+					total_red += shared_data[j][shared_i +  k].red;
+					total_blue += shared_data[j][shared_i + k].blue;
+					total_green += shared_data[j][shared_i + k].green;
 				}
-
 			}
 
 		}
 
-	    data_out[i].red = total_red / ( MASK_WIDTH * MASK_WIDTH );
-	    data_out[i].blue = total_blue / ( MASK_WIDTH * MASK_WIDTH );
-	    data_out[i].green = total_green / ( MASK_WIDTH * MASK_WIDTH );
+		data_out[i].red = total_red / ( MASK_WIDTH * MASK_WIDTH );
+		data_out[i].blue = total_blue / ( MASK_WIDTH * MASK_WIDTH );
+		data_out[i].green = total_green / ( MASK_WIDTH * MASK_WIDTH );
 	}
 
 }
