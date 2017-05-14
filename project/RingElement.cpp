@@ -19,7 +19,7 @@ RingElement::RingElement(std::string name, double length, int pass_method) {
 
 /* Drift class members */
 
-void Drift::pass(pos_t &e) {
+void CUDA_CALLABLE_MEMBER Drift::pass(pos_t &e) {
 
 	std::cout << "Passing through " << this->fam_name << std::endl;
 
@@ -27,7 +27,7 @@ void Drift::pass(pos_t &e) {
 	e[2] += this->length * e[3];
 }
 
-void Quadrupole::pass(pos_t &e) {
+void CUDA_CALLABLE_MEMBER Quadrupole::pass(pos_t &e) {
 
 	std::cout << "Passing through " << this->fam_name << std::endl;
 
@@ -35,7 +35,7 @@ void Quadrupole::pass(pos_t &e) {
 	e[3] += +e[2]/this->focal_distance;
 }
 
-void Sextupole::pass(pos_t &e) {
+void CUDA_CALLABLE_MEMBER Sextupole::pass(pos_t &e) {
 
 	std::cout << "Passing through " << this->fam_name << std::endl;
 

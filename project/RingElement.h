@@ -10,6 +10,13 @@
 
 #include <string>
 
+#ifdef __CUDACC__
+#include <cuda.h>
+#define CUDA_CALLABLE_MEMBER __host__ __device__
+#else
+#define CUDA_CALLABLE_MEMBER
+#endif
+
 typedef double pos_t[6];
 
 /* A single element of the ring */
@@ -36,7 +43,7 @@ public:
 	Drift (std::string name, double length)
 			: RingElement(name, length, RingElement::DRIFT) {}
 
-	void pass(pos_t &e);
+	CUDA_CALLABLE_MEMBER void pass(pos_t &e);
 };
 
 
@@ -49,7 +56,7 @@ public:
 		this->focal_distance = focal_distance;
 	}
 
-	void pass(pos_t &e);
+	CUDA_CALLABLE_MEMBER void pass(pos_t &e);
 
 private:
 	double focal_distance;
@@ -64,7 +71,7 @@ public:
 		this->sextupole_strength = sextupole_strength;
 	}
 
-	void pass(pos_t &e);
+	CUDA_CALLABLE_MEMBER void pass(pos_t &e);
 
 private:
 	double sextupole_strength;
