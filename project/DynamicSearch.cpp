@@ -60,6 +60,22 @@ DynamicSearch::~DynamicSearch() {
 	this->ring.clear();
 }
 
+bool DynamicSearch::testSolution(pos_t r){
+
+	double s=r[0]+r[1]+r[2]+r[3]+r[4]+r[5];
+	if ((std::isfinite(s)) && // is not a NaN or Inf
+		((abs(r[0]) < this->positionThreshold) &&
+		(abs(r[1]) < this->angularThreshold)  &&
+		(abs(r[2]) < this->positionThreshold)  &&
+		(abs(r[3]) < this->angularThreshold)  &&
+		(abs(r[4]) < this->deviationEnergyThreshold)   &&
+		(abs(r[5]) < this->positionThreshold)))
+		return true;
+
+	return false;
+
+}
+
 /* DefaultDynamicSearch class members*/
 
 int DefaultDynamicSearch::dynamical_aperture_search() {
@@ -69,8 +85,8 @@ int DefaultDynamicSearch::dynamical_aperture_search() {
 
     unsigned int nr_stable_points = 0;
 
-    for(unsigned int i=0; i < N_POINTS_X; ++i) {
-      for(unsigned int j=0; j < N_POINTS_Y; ++j) {
+    for(unsigned int i = 0; i < N_POINTS_X; ++i) {
+      for(unsigned int j = 0; j < N_POINTS_Y; ++j) {
 
         double posx = x[0] + i*(x[1] - x[0])/(N_POINTS_X - 1);
         double posy = y[0] + j*(y[1] - y[0])/(N_POINTS_Y - 1);
@@ -81,14 +97,7 @@ int DefaultDynamicSearch::dynamical_aperture_search() {
         	this->performOneTurn(r);
         }
 
-        double s=r[0]+r[1]+r[2]+r[3]+r[4]+r[5];
-        if ((std::isfinite(s)) && // is not a NaN or Inf
-            ((abs(r[0]) < this->positionThreshold) &&
-            (abs(r[1]) < this->angularThreshold)  &&
-            (abs(r[2]) < this->positionThreshold)  &&
-            (abs(r[3]) < this->angularThreshold)  &&
-            (abs(r[4]) < this->deviationEnergyThreshold)   &&
-            (abs(r[5]) < this->positionThreshold))) {
+        if (this->testSolution(r)) {
                 nr_stable_points++;
                 std::cout << "nr_stable_points: " << nr_stable_points << "/" << N_POINTS_X * N_POINTS_Y << std::endl;
             }

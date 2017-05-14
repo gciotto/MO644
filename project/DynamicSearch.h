@@ -31,6 +31,7 @@ public:
 	virtual ~DynamicSearch();
 
 	void createRing();
+	bool testSolution(pos_t r);
 
 	/* Abstract members */
 	virtual int dynamical_aperture_search() = 0;
