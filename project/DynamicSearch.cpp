@@ -76,6 +76,13 @@ bool DynamicSearch::testSolution(pos_t r){
 
 }
 
+void DynamicSearch::performOneTurn(pos_t &e) {
+
+	for(unsigned int i = 0; i < this->ring.size(); ++i) {
+		this->ring[i]->pass(e);
+	}
+}
+
 /* DefaultDynamicSearch class members*/
 
 int DefaultDynamicSearch::dynamical_aperture_search() {
@@ -99,18 +106,11 @@ int DefaultDynamicSearch::dynamical_aperture_search() {
 
         if (this->testSolution(r)) {
                 nr_stable_points++;
-                std::cout << "nr_stable_points: " << nr_stable_points << "/" << N_POINTS_X * N_POINTS_Y << std::endl;
+                std::cout << "nr_stable_points: " << nr_stable_points << "/" << N_POINTS_X * N_POINTS_Y << "(" << i << "," << j << ")" << std::endl;
             }
       }
     }
 
     return nr_stable_points;
 
-}
-
-void DefaultDynamicSearch::performOneTurn(pos_t &e) {
-
-	for(unsigned int i = 0; i < this->ring.size(); ++i) {
-		this->ring[i]->pass(e);
-	}
 }

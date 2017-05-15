@@ -33,9 +33,10 @@ public:
 	void createRing();
 	bool testSolution(pos_t r);
 
+	virtual void performOneTurn(pos_t &e);
+
 	/* Abstract members */
 	virtual int dynamical_aperture_search() = 0;
-	virtual void performOneTurn(pos_t &e) = 0;
 
 /* Protected members */
 protected:
@@ -57,7 +58,6 @@ public:
 				: DynamicSearch(e, pThreshold, angThreshold,  deviationEnergyThreshold, turns) {};
 
 	int dynamical_aperture_search();
-	void performOneTurn(pos_t &e);
 };
 
 #endif /* DYNAMICSEARCH_H_ */
