@@ -19,13 +19,17 @@ public:
 	CudaDynamicSearch(unsigned int e, double pThreshold, double angThreshold, double deviationEnergyThreshold,
 							 unsigned int turns)
 					: DynamicSearch(e, pThreshold, angThreshold,  deviationEnergyThreshold, turns) {};
+
+	CUDA_CALLABLE_MEMBER unsigned int getTurns() {
+		return this->turns;
+	};
+
 	virtual ~CudaDynamicSearch();
 
 	int dynamical_aperture_search();
-	__host__ __device__ int performOneTurn(pos_t &e);
 
-private:
-	__global__ void dynamicSearchKernel();
+	RingElement *cuda_elements;
+	unsigned int size;
 };
 
 #endif /* CUDADYNAMICSEARCH_H_ */
