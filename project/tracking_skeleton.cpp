@@ -113,7 +113,7 @@ int dynamical_aperture_search(const std::vector<RingElement>& ring) {
             (abs(r[4]) < de_threshold)   && 
             (abs(r[5]) < pos_threshold))) {
                 nr_stable_points++;
-                std::cout << "nr_stable_points: " << nr_stable_points << "/" << nrpts_x*nrpts_y << std::endl;
+                std::cout << "nr_stable_points: " << nr_stable_points << "/" << nrpts_x*nrpts_y << "(" << i << "," << j << ")" << std::endl;
             }
       }
     }
