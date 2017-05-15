@@ -28,7 +28,7 @@ public:
 	RingElement(std::string name, double length, int pass_method);
 	virtual ~RingElement() {};
 
-	virtual void pass(pos_t &e) = 0;
+	virtual CUDA_CALLABLE_MEMBER void pass(pos_t &e) = 0;
 
 protected:
 	std::string         fam_name;
