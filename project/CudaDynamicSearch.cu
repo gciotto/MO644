@@ -71,6 +71,8 @@ int CudaDynamicSearch::dynamical_aperture_search() {
         ring_element_t *ring_element = (ring_element_t*) malloc (this->ring.size() * sizeof(ring_element_t)),
                        *cuda_ring_element = NULL;
 
+        std::cout << sizeof(pos_t) << std::endl;
+
         for (unsigned int i = 0; i < this->ring.size(); i++) {
                 ring_element[i].type = this->ring[i]->getType();
                 ring_element[i].length = this->ring[i]->getLength();
@@ -83,7 +85,8 @@ int CudaDynamicSearch::dynamical_aperture_search() {
         }
 
 	/* Allocates memory in the device */
-	cudaMalloc ((void**) cuda_ring_element, sizeof(pos_t));
+	cudaMalloc ((void**) cuda_ring_element, this->ring.size() * sizeof(ring_element_t));
+	cudaMemcpy(cuda_ring_element, ring_element, this->ring.size() * sizeof(ring_element_t), cudaMemcpyHostToDevice);
 
 	/* Copies ring element array to the device */
 
@@ -92,13 +95,20 @@ int CudaDynamicSearch::dynamical_aperture_search() {
 	/* Computes grid dimension */
 	dim3 dimGrid( std::ceil( (float) N_POINTS_X / CudaDynamicSearch::THREAD_PER_BLOCK ), std::ceil( (float) N_POINTS_Y / CudaDynamicSearch::THREAD_PER_BLOCK));
 
+        std::cout << dimGrid.x << " " << dimGrid.y << std::endl;
+
 	/* Computes block dimensions (X, Y) */
 	dim3 dimBlock(CudaDynamicSearch::THREAD_PER_BLOCK, CudaDynamicSearch::THREAD_PER_BLOCK);
 
 	/* Copies result to the host */
-	// dynamicSearchKernel<<< dimGrid, dimBlock >>>(, cuda_result, this->turns, this->repeat, this->ring.size());
+	dynamicSearchKernel<<< dimGrid, dimBlock >>>(cuda_ring_element, cuda_result, this->turns, this->repeat, this->ring.size());
 
-        cudaMemcpy(host_result, cuda_result, sizeof(pos_t), cudaMemcpyDeviceToHost);
+	std::cout << this->turns << " " << this->repeat << " " << this->ring.size() << std::endl;
+
+        cudaMemcpy(host_result, cuda_result, N_POINTS_X * N_POINTS_Y * sizeof(pos_t), cudaMemcpyDeviceToHost);
+
+	for (unsigned int i = 0; i < N_POINTS_X * N_POINTS_Y ; i++)
+		std::cout << host_result[i][0] << " ";
 
         free(ring_element);
 	free(host_result);
