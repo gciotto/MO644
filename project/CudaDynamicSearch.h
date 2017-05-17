@@ -27,9 +27,6 @@ public:
 	virtual ~CudaDynamicSearch();
 
 	int dynamical_aperture_search();
-
-	RingElement *cuda_elements;
-	unsigned int size;
 };
 
 #endif /* CUDADYNAMICSEARCH_H_ */
