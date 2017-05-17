@@ -42,7 +42,7 @@ public:
 protected:
 	std::vector<RingElement*> ring;
 
-	unsigned int ringElementNumber, turns;
+	unsigned int repeat, turns;
 
 	double 	positionThreshold,
 			angularThreshold,

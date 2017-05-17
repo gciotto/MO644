@@ -17,7 +17,7 @@ DynamicSearch::DynamicSearch() {
 	this->angularThreshold = ANGULAR_THRESHOLD;
 	this->deviationEnergyThreshold = DEVIATION_ENERGY_THRESHOLD;
 
-	this->ringElementNumber = DEFAULT_ELEMENT_COUNT;
+	this->repeat = DEFAULT_ELEMENT_COUNT;
 
 	this->turns = DEFAULT_TURNS;
 
@@ -36,7 +36,7 @@ DynamicSearch::DynamicSearch(unsigned int e, double pThreshold,
 
 	this->turns = turns;
 
-	this->ringElementNumber = e;
+	this->repeat = e;
 
 }
 
@@ -46,13 +46,14 @@ void DynamicSearch::createRing() {
 	  // but it has the typical number of elements.
 	  this->ring.clear();
 
-	  for(unsigned int i = 0; i < this->ringElementNumber; ++i) {
-		  this->ring.push_back(new Drift("Drift1", 1.0));
-		  this->ring.push_back(new Quadrupole("Quadrupole1", 0.1, +2.0));
-		  this->ring.push_back(new Drift("Drift2", 1.0));
-		  this->ring.push_back(new Quadrupole("Quadrupole2", 0.1, -2.0));
-		  this->ring.push_back(new Sextupole("Sextupole", 0.1, -30.0));
-	  }
+          /* See performOneTurn(). Instead of adding many equal elements, we add only one
+             instance for each one and iterate many times over this smaller set.  */
+          this->ring.push_back(new Drift("Drift1", 1.0));
+	  this->ring.push_back(new Quadrupole("Quadrupole1", 0.1, +2.0));
+	  this->ring.push_back(new Drift("Drift2", 1.0));
+	  this->ring.push_back(new Quadrupole("Quadrupole2", 0.1, -2.0));
+	  this->ring.push_back(new Sextupole("Sextupole", 0.1, -30.0));
+
 }
 
 DynamicSearch::~DynamicSearch() {
@@ -78,9 +79,12 @@ bool DynamicSearch::testSolution(pos_t r){
 
 void DynamicSearch::performOneTurn(pos_t &e) {
 
-	for(unsigned int i = 0; i < this->ring.size(); ++i) {
-		this->ring[i]->pass(e);
-	}
+        /* In order to make the cuda solution easier and to use less memory,
+           we add fewer elements into the ring vector, but execute more iterations */
+        for(unsigned int i = 0; i < this->repeat; ++i)
+	        for(unsigned int j = 0; j < this->ring.size(); ++j)
+	        	this->ring[j]->pass(e);
+
 }
 
 /* DefaultDynamicSearch class members*/
