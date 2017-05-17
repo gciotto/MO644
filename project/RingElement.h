@@ -28,6 +28,14 @@ public:
 	RingElement(std::string name, double length, int pass_method);
 	virtual ~RingElement() {};
 
+        int getType () {
+                return this->pass_method;
+        }
+
+        double getLength () {
+                return this->length;
+        }
+
 	virtual CUDA_CALLABLE_MEMBER void pass(pos_t &e) = 0;
 
 protected:
@@ -56,6 +64,10 @@ public:
 		this->focal_distance = focal_distance;
 	}
 
+        double getFocalDistance() {
+                return this->focal_distance;
+        }
+
 	CUDA_CALLABLE_MEMBER void pass(pos_t &e);
 
 private:
@@ -70,6 +82,10 @@ public:
 			: RingElement(name, length, RingElement::SEXTUPOLE) {
 		this->sextupole_strength = sextupole_strength;
 	}
+
+        double getSextupoleStrength() {
+                return this->sextupole_strength;
+        }
 
 	CUDA_CALLABLE_MEMBER void pass(pos_t &e);
 
