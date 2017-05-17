@@ -25,6 +25,10 @@ __global__ void dynamicSearchKernel(ring_element_t* c, pos_t *d, unsigned int tu
         int i = blockDim.x * blockIdx.x + threadIdx.x,
             j = blockDim.y * blockIdx.y + threadIdx.y;
 
+	printf("%d , %d, %d \n", turns, repeat, size);
+
+//	printf("(%d , %d) \n", i, j);
+
         if (i < N_POINTS_X && j < N_POINTS_Y) {
 
                 double posx = x[0] + i*(x[1] - x[0])/(N_POINTS_X - 1),
@@ -32,11 +36,17 @@ __global__ void dynamicSearchKernel(ring_element_t* c, pos_t *d, unsigned int tu
 
                 pos_t r = {posx, 0, posy, 0, 0, 0};
 
+//		printf ("%f %f %f %f %f %f \n", r[0], r[1], r[2], r[3], r[4], r[5]);
+
                 for (unsigned int k = 0; k < turns; k++)
                         for (unsigned int l = 0; l < repeat; l++)
                                 for (unsigned int m = 0; m < size; m++) {
 
+					printf ("---> teste\n");
+
                                         ring_element_t aux = c[m];
+
+					printf ("---> %d\n", aux.type);
 
                                         if (aux.type == RingElement::DRIFT) {
                                               	r[0] += aux.length * r[1];
@@ -51,6 +61,8 @@ __global__ void dynamicSearchKernel(ring_element_t* c, pos_t *d, unsigned int tu
                                         	r[3] += aux.sextupole_strength * aux.length * 2 * r[0]*r[2];
                                         }
                                 }
+
+		printf ("%f %f %f %f %f %f \n", r[0], r[1], r[2], r[3], r[4], r[5]);
 
                 for (unsigned int k = 0; k < 6; k++)
                         d[i * N_POINTS_X + j][k] = r[k];
@@ -81,6 +93,8 @@ int CudaDynamicSearch::dynamical_aperture_search() {
                         ring_element[i].focal_distance = ((Quadrupole*) this->ring[i])->getFocalDistance();
                 else if (ring_element[i].type == RingElement::SEXTUPOLE)
                         ring_element[i].sextupole_strength = ((Sextupole*) this->ring[i])->getSextupoleStrength();
+
+		std::cout << ring_element[i].type << " " << ring_element[i].length << std::endl;
                 
         }
 
@@ -107,8 +121,8 @@ int CudaDynamicSearch::dynamical_aperture_search() {
 
         cudaMemcpy(host_result, cuda_result, N_POINTS_X * N_POINTS_Y * sizeof(pos_t), cudaMemcpyDeviceToHost);
 
-	for (unsigned int i = 0; i < N_POINTS_X * N_POINTS_Y ; i++)
-		std::cout << host_result[i][0] << " ";
+//	for (unsigned int i = 0; i < N_POINTS_X * N_POINTS_Y ; i++)
+//		std::cout << host_result[i][0] << " ";
 
         free(ring_element);
 	free(host_result);
