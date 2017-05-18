@@ -108,10 +108,8 @@ int DefaultDynamicSearch::dynamical_aperture_search() {
         	this->performOneTurn(r);
         }
 
-        if (this->testSolution(r)) {
-                nr_stable_points++;
-                std::cout << "nr_stable_points: " << nr_stable_points << "/" << N_POINTS_X * N_POINTS_Y << "(" << i << "," << j << ")" << std::endl;
-            }
+        if (this->testSolution(r))
+                printf ("%f %f %f %f %f %f (%d / %d) - (%d)\n", r[0], r[1], r[2], r[3], r[4], r[5], ++nr_stable_points , N_POINTS_X * N_POINTS_Y, i * N_POINTS_X + j);
       }
     }
 

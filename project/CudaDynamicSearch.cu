@@ -101,14 +101,13 @@ int CudaDynamicSearch::dynamical_aperture_search() {
 	/* Copies result to the host */
 	dynamicSearchKernel<<< dimGrid, dimBlock >>>(cuda_ring_element, cuda_result, this->turns, this->repeat, this->ring.size());
 
-	std::cout << this->turns << " " << this->repeat << " " << this->ring.size() << std::endl;
-
         cudaMemcpy(host_result, cuda_result, N_POINTS_X * N_POINTS_Y * sizeof(pos_t), cudaMemcpyDeviceToHost);
 
 	unsigned int j = 0;
 	for (unsigned int i = 0; i < N_POINTS_X * N_POINTS_Y ; i++) {
+
 		if (this->testSolution(host_result[i]))
-			printf ("%f %f %f %f %f %f (%d / %d)\n", host_result[i][0], host_result[i][1], host_result[i][2], host_result[i][3], host_result[i][4], host_result[i][5], ++j , N_POINTS_X * N_POINTS_Y);
+			printf ("%f %f %f %f %f %f (%d / %d) - (%d)\n", host_result[i][0], host_result[i][1], host_result[i][2], host_result[i][3], host_result[i][4], host_result[i][5], ++j , N_POINTS_X * N_POINTS_Y, i);
 		
 	}
 
@@ -119,6 +118,5 @@ int CudaDynamicSearch::dynamical_aperture_search() {
         cudaFree(cuda_result);
 
 	return 0;
-
 }
 
