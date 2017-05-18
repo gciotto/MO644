@@ -23,49 +23,39 @@ __global__ void dynamicSearchKernel(ring_element_t* c, pos_t *d, unsigned int tu
         double y[2] = {+0.000, +0.003};
 
         int i = blockDim.x * blockIdx.x + threadIdx.x,
-            j = blockDim.y * blockIdx.y + threadIdx.y;
+            j = blockDim.y * blockIdx.y + threadIdx.y,
+	    max = N_POINTS_X * N_POINTS_Y,
+	    index = i * N_POINTS_X + j;
 
-	printf("%d , %d, %d \n", turns, repeat, size);
-
-//	printf("(%d , %d) \n", i, j);
-
-        if (i < N_POINTS_X && j < N_POINTS_Y) {
+        if (index < max) {
 
                 double posx = x[0] + i*(x[1] - x[0])/(N_POINTS_X - 1),
                        posy = y[0] + j*(y[1] - y[0])/(N_POINTS_Y - 1);
 
                 pos_t r = {posx, 0, posy, 0, 0, 0};
 
-//		printf ("%f %f %f %f %f %f \n", r[0], r[1], r[2], r[3], r[4], r[5]);
-
                 for (unsigned int k = 0; k < turns; k++)
                         for (unsigned int l = 0; l < repeat; l++)
                                 for (unsigned int m = 0; m < size; m++) {
 
-					printf ("---> teste\n");
-
                                         ring_element_t aux = c[m];
 
-					printf ("---> %d\n", aux.type);
-
                                         if (aux.type == RingElement::DRIFT) {
-                                              	r[0] += aux.length * r[1];
-                                        	r[2] += aux.length * r[3];
+						r[0] += aux.length * r[1];
+						r[2] += aux.length * r[3];
                                         }
                                         else if (aux.type == RingElement::QUADRUPOLE) {
-                                        	r[1] += -r[0]/aux.focal_distance;
-                                        	r[3] += +r[2]/aux.focal_distance;
+						r[1] += -r[0]/aux.focal_distance;
+						r[3] += +r[2]/aux.focal_distance;
                                         }
-                                        else if (c[m].type == RingElement::SEXTUPOLE) {
-                                        	r[1] += aux.sextupole_strength * aux.length * (r[0]*r[0] - r[2]*r[2]);
-                                        	r[3] += aux.sextupole_strength * aux.length * 2 * r[0]*r[2];
+                                        else if (aux.type == RingElement::SEXTUPOLE) {
+						r[1] += aux.sextupole_strength * aux.length * (r[0]*r[0] - r[2]*r[2]);
+						r[3] += aux.sextupole_strength * aux.length * 2 * r[0]*r[2];
                                         }
                                 }
 
-		printf ("%f %f %f %f %f %f \n", r[0], r[1], r[2], r[3], r[4], r[5]);
-
                 for (unsigned int k = 0; k < 6; k++)
-                        d[i * N_POINTS_X + j][k] = r[k];
+                        d[index][k] = r[k];
         }
 }
 
@@ -83,33 +73,27 @@ int CudaDynamicSearch::dynamical_aperture_search() {
         ring_element_t *ring_element = (ring_element_t*) malloc (this->ring.size() * sizeof(ring_element_t)),
                        *cuda_ring_element = NULL;
 
-        std::cout << sizeof(pos_t) << std::endl;
-
         for (unsigned int i = 0; i < this->ring.size(); i++) {
                 ring_element[i].type = this->ring[i]->getType();
                 ring_element[i].length = this->ring[i]->getLength();
+                ring_element[i].focal_distance = 0.0;
+                ring_element[i].sextupole_strength = 0.0;
 
                 if (ring_element[i].type == RingElement::QUADRUPOLE)
                         ring_element[i].focal_distance = ((Quadrupole*) this->ring[i])->getFocalDistance();
                 else if (ring_element[i].type == RingElement::SEXTUPOLE)
-                        ring_element[i].sextupole_strength = ((Sextupole*) this->ring[i])->getSextupoleStrength();
-
-		std::cout << ring_element[i].type << " " << ring_element[i].length << std::endl;
-                
+                        ring_element[i].sextupole_strength = ((Sextupole*) this->ring[i])->getSextupoleStrength();                
         }
 
 	/* Allocates memory in the device */
-	cudaMalloc ((void**) cuda_ring_element, this->ring.size() * sizeof(ring_element_t));
+	cudaMalloc ((void**) &cuda_ring_element, this->ring.size() * sizeof(ring_element_t));
 	cudaMemcpy(cuda_ring_element, ring_element, this->ring.size() * sizeof(ring_element_t), cudaMemcpyHostToDevice);
 
 	/* Copies ring element array to the device */
-
 	cudaMalloc ((void**) &cuda_result, N_POINTS_X * N_POINTS_Y * sizeof(pos_t));
 
 	/* Computes grid dimension */
 	dim3 dimGrid( std::ceil( (float) N_POINTS_X / CudaDynamicSearch::THREAD_PER_BLOCK ), std::ceil( (float) N_POINTS_Y / CudaDynamicSearch::THREAD_PER_BLOCK));
-
-        std::cout << dimGrid.x << " " << dimGrid.y << std::endl;
 
 	/* Computes block dimensions (X, Y) */
 	dim3 dimBlock(CudaDynamicSearch::THREAD_PER_BLOCK, CudaDynamicSearch::THREAD_PER_BLOCK);
@@ -121,8 +105,12 @@ int CudaDynamicSearch::dynamical_aperture_search() {
 
         cudaMemcpy(host_result, cuda_result, N_POINTS_X * N_POINTS_Y * sizeof(pos_t), cudaMemcpyDeviceToHost);
 
-//	for (unsigned int i = 0; i < N_POINTS_X * N_POINTS_Y ; i++)
-//		std::cout << host_result[i][0] << " ";
+	unsigned int j = 0;
+	for (unsigned int i = 0; i < N_POINTS_X * N_POINTS_Y ; i++) {
+		if (this->testSolution(host_result[i]))
+			printf ("%f %f %f %f %f %f (%d / %d)\n", host_result[i][0], host_result[i][1], host_result[i][2], host_result[i][3], host_result[i][4], host_result[i][5], ++j , N_POINTS_X * N_POINTS_Y);
+		
+	}
 
         free(ring_element);
 	free(host_result);
