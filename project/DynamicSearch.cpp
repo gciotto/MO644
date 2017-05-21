@@ -8,6 +8,7 @@
 #include "DynamicSearch.h"
 #include <cmath>
 #include <iostream>
+#include <fstream>
 
 /* DynamicSearch class */
 
@@ -22,6 +23,8 @@ DynamicSearch::DynamicSearch() {
 	this->turns = DEFAULT_TURNS;
 
 	this->ring.clear();
+
+        this->result_set = (pos_t*) malloc (N_POINTS_X * N_POINTS_Y * sizeof(pos_t));
 }
 
 DynamicSearch::DynamicSearch(unsigned int e, double pThreshold,
@@ -37,7 +40,6 @@ DynamicSearch::DynamicSearch(unsigned int e, double pThreshold,
 	this->turns = turns;
 
 	this->repeat = e;
-
 }
 
 void DynamicSearch::createRing() {
@@ -58,7 +60,10 @@ void DynamicSearch::createRing() {
 
 DynamicSearch::~DynamicSearch() {
 
+        std::cout << "DynamicSearch destructor called." << std::endl;
+
 	this->ring.clear();
+        free(this->result_set);
 }
 
 bool DynamicSearch::testSolution(pos_t r){
@@ -66,10 +71,10 @@ bool DynamicSearch::testSolution(pos_t r){
 	double s=r[0]+r[1]+r[2]+r[3]+r[4]+r[5];
 	if ((std::isfinite(s)) && // is not a NaN or Inf
 		((abs(r[0]) < this->positionThreshold) &&
-		(abs(r[1]) < this->angularThreshold)  &&
-		(abs(r[2]) < this->positionThreshold)  &&
-		(abs(r[3]) < this->angularThreshold)  &&
-		(abs(r[4]) < this->deviationEnergyThreshold)   &&
+		(abs(r[1]) < this->angularThreshold) &&
+		(abs(r[2]) < this->positionThreshold) &&
+		(abs(r[3]) < this->angularThreshold) &&
+		(abs(r[4]) < this->deviationEnergyThreshold) &&
 		(abs(r[5]) < this->positionThreshold)))
 		return true;
 
@@ -84,6 +89,41 @@ void DynamicSearch::performOneTurn(pos_t &e) {
         for(unsigned int i = 0; i < this->repeat; ++i)
 	        for(unsigned int j = 0; j < this->ring.size(); ++j)
 	        	this->ring[j]->pass(e);
+
+}
+
+void DynamicSearch::plot() {
+
+        if (this->result_set != NULL) {
+
+                std::ofstream out_file;
+                out_file.open ("plot_dynamicsearch.dat");
+
+                for (unsigned int i = 0; i < N_POINTS_X; i++) {
+                        for (unsigned int j = 0; j < N_POINTS_Y; j++) {
+
+                                int index = i * N_POINTS_X + j;
+                                double *r = this->result_set[index];
+
+                                double p, sum_r = r[0] + r[1] + r[2] + r[3] + r[4] + r[5];
+
+                                if (!std::isfinite(sum_r)) p = 1.0;
+                                else {
+
+                                        p = 0.0;
+                                        for (unsigned int k = 0; k < 6; k++)
+                                                p += r[k] * r[k];
+
+                                        p = sqrt(p);
+                                }
+
+                                out_file << p << " ";
+                        }
+
+                        out_file << std::endl;
+                }
+                
+        }
 
 }
 
@@ -102,17 +142,22 @@ int DefaultDynamicSearch::dynamical_aperture_search() {
         double posx = x[0] + i*(x[1] - x[0])/(N_POINTS_X - 1);
         double posy = y[0] + j*(y[1] - y[0])/(N_POINTS_Y - 1);
 
-        pos_t r = {posx, 0, posy, 0, 0, 0};
+        int index = i * N_POINTS_X + j;
+
+        this->result_set[index][0] = posx;
+        this->result_set[index][2] = posy;
+        this->result_set[index][1] = this->result_set[index][3] = this->result_set[index][4] = this->result_set[index][5] = 0;
 
         for(unsigned int i = 0; i < this->turns; ++i) {
-        	this->performOneTurn(r);
+        	this->performOneTurn(this->result_set[index]);
         }
 
-        if (this->testSolution(r))
-                printf ("%f %f %f %f %f %f (%d / %d) - (%d)\n", r[0], r[1], r[2], r[3], r[4], r[5], ++nr_stable_points , N_POINTS_X * N_POINTS_Y, i * N_POINTS_X + j);
+        if (this->testSolution(this->result_set[index]))
+                printf ("%f %f %f %f %f %f (%d / %d) - (%d)\n", this->result_set[index][0], this->result_set[index][1], 
+                                this->result_set[index][2], this->result_set[index][3], this->result_set[index][4], this->result_set[index][5], 
+                                ++nr_stable_points , N_POINTS_X * N_POINTS_Y, index);
       }
     }
 
     return nr_stable_points;
-
 }

@@ -34,6 +34,7 @@ public:
 	bool testSolution(pos_t r);
 
 	virtual void performOneTurn(pos_t &e);
+        virtual void plot();
 
 	/* Abstract members */
 	virtual int dynamical_aperture_search() = 0;
@@ -44,9 +45,9 @@ protected:
 
 	unsigned int repeat, turns;
 
-	double 	positionThreshold,
-			angularThreshold,
-			deviationEnergyThreshold;
+	double 	positionThreshold, angularThreshold, deviationEnergyThreshold;
+
+        pos_t *result_set;
 };
 
 class DefaultDynamicSearch : public DynamicSearch {
