@@ -36,7 +36,7 @@ public:
                 return this->length;
         }
 
-	virtual CUDA_CALLABLE_MEMBER void pass(pos_t &e) = 0;
+	virtual void pass(pos_t &e) = 0;
 
 protected:
 	std::string         fam_name;
@@ -51,7 +51,7 @@ public:
 	Drift (std::string name, double length)
 			: RingElement(name, length, RingElement::DRIFT) {}
 
-	CUDA_CALLABLE_MEMBER void pass(pos_t &e);
+	void pass(pos_t &e);
 };
 
 
@@ -68,7 +68,7 @@ public:
                 return this->focal_distance;
         }
 
-	CUDA_CALLABLE_MEMBER void pass(pos_t &e);
+	void pass(pos_t &e);
 
 private:
 	double focal_distance;
@@ -87,7 +87,7 @@ public:
                 return this->sextupole_strength;
         }
 
-	CUDA_CALLABLE_MEMBER void pass(pos_t &e);
+	void pass(pos_t &e);
 
 private:
 	double sextupole_strength;
