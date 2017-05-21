@@ -9,6 +9,7 @@
 #include "RingElement.h"
 #include <math.h>
 #include <iostream>
+#include <fstream>
 
 typedef struct {
 
@@ -17,17 +18,41 @@ typedef struct {
 
 } ring_element_t;
 
+__global__ void summaryKernel(pos_t *r, double* s) {
+
+        int j = blockDim.x * blockIdx.x + threadIdx.x,
+            i = blockDim.y * blockIdx.y + threadIdx.y;
+
+        if (i < N_POINTS_X && j < N_POINTS_Y) {
+
+                int index = i * N_POINTS_X + j;
+
+                double *t = r[index], sum = t[0] + t[1] + t[2] + t[3] + t[4] + t[5];
+
+                if (!isfinite(sum))
+                        s[index] = 1.0;
+                else {
+                        s[index] = 0.0;
+                        for (unsigned int k = 0; k < 6; k++)
+                                s[index] += t[k] * t[k];
+
+                        s[index] = sqrt(s[index]);
+                }
+        }
+
+}
+
 __global__ void dynamicSearchKernel(ring_element_t* c, pos_t *d, unsigned int turns, unsigned int repeat, unsigned int size) {
 
         double x[2] = {-0.10, +0.10};
         double y[2] = {+0.000, +0.003};
 
-        int i = blockDim.x * blockIdx.x + threadIdx.x,
-            j = blockDim.y * blockIdx.y + threadIdx.y;
+        int j = blockDim.x * blockIdx.x + threadIdx.x,
+            i = blockDim.y * blockIdx.y + threadIdx.y;
 
         if (i < N_POINTS_X && j < N_POINTS_Y) {
 
-		int index = j * N_POINTS_X + i;
+		int index = i * N_POINTS_X + j;
 
                 double posx = x[0] + i * (x[1] - x[0])/(N_POINTS_X - 1),
                        posy = y[0] + j * (y[1] - y[0])/(N_POINTS_Y - 1);
@@ -53,7 +78,6 @@ __global__ void dynamicSearchKernel(ring_element_t* c, pos_t *d, unsigned int tu
 						r[3] += aux.sextupole_strength * aux.length * 2 * r[0]*r[2];
                                         }
                                 }
-
 		}
 
                 for (unsigned int k = 0; k < 6; k++)
@@ -65,14 +89,15 @@ __global__ void dynamicSearchKernel(ring_element_t* c, pos_t *d, unsigned int tu
 
 CudaDynamicSearch::~CudaDynamicSearch() {
 
+    std::cout << "CudDynamicSearch destructor called." << std::endl;
     /* Clears everything up */
     this->ring.clear();
+
+    cudaFree(this->cuda_result);
 }
 
 int CudaDynamicSearch::dynamical_aperture_search() {
       
-        pos_t *host_result = (pos_t*) malloc (N_POINTS_X * N_POINTS_Y * sizeof(pos_t)), 
-	      *cuda_result = NULL;
         ring_element_t *ring_element = (ring_element_t*) malloc (this->ring.size() * sizeof(ring_element_t)),
                        *cuda_ring_element = NULL;
 
@@ -92,9 +117,6 @@ int CudaDynamicSearch::dynamical_aperture_search() {
 	cudaMalloc ((void**) &cuda_ring_element, this->ring.size() * sizeof(ring_element_t));
 	cudaMemcpy(cuda_ring_element, ring_element, this->ring.size() * sizeof(ring_element_t), cudaMemcpyHostToDevice);
 
-	/* Copies ring element array to the device */
-	cudaMalloc ((void**) &cuda_result, N_POINTS_X * N_POINTS_Y * sizeof(pos_t));
-
 	/* Computes grid dimension */
 	dim3 dimGrid( ceil( (float) N_POINTS_X / CudaDynamicSearch::THREAD_PER_BLOCK ), ceil( (float) N_POINTS_Y / CudaDynamicSearch::THREAD_PER_BLOCK));
 
@@ -104,25 +126,62 @@ int CudaDynamicSearch::dynamical_aperture_search() {
 	printf("%d %d %d\n", this->turns, this->repeat, this->ring.size());
 
 	/* Copies result to the host */
-	dynamicSearchKernel<<< dimGrid, dimBlock >>>(cuda_ring_element, cuda_result, this->turns, this->repeat, this->ring.size());
+	dynamicSearchKernel<<< dimGrid, dimBlock >>>(cuda_ring_element, this->cuda_result, this->turns, this->repeat, this->ring.size());
 
-        cudaMemcpy(host_result, cuda_result, N_POINTS_X * N_POINTS_Y * sizeof(pos_t), cudaMemcpyDeviceToHost);
+        cudaMemcpy(this->result_set, this->cuda_result, N_POINTS_X * N_POINTS_Y * sizeof(pos_t), cudaMemcpyDeviceToHost);
 
 	unsigned int p = 0;
 	for (unsigned int i = 0; i < N_POINTS_X ; i++) 
 		for (unsigned int j = 0; j < N_POINTS_Y ; j++){
-			unsigned int index = j * N_POINTS_X + i;
-			if (this->testSolution(host_result[index]))
-				printf ("%f %f %f %f %f %f (%d / %d) (%d, %d)\n", host_result[index][0], host_result[index][1], host_result[index][2], host_result[index][3], host_result[index][4], host_result[index][5], ++p , N_POINTS_X * N_POINTS_Y, i, j);
+			unsigned int index = i * N_POINTS_X + j;
+			if (this->testSolution(this->result_set[index]))
+				printf ("%f %f %f %f %f %f (%d / %d) - (%d)\n", this->result_set[index][0], this->result_set[index][1], this->result_set[index][2], this->result_set[index][3], 
+                                                                        this->result_set[index][4], this->result_set[index][5], ++p , N_POINTS_X * N_POINTS_Y, index);
 		
 		}
 
         free(ring_element);
-	free(host_result);
 
         cudaFree(cuda_ring_element);
-        cudaFree(cuda_result);
 
 	return 0;
+}
+
+void CudaDynamicSearch::plot() {
+
+        if (this->result_set != NULL) {
+
+                /* Allocates array for results */
+                double *cuda_r, *host_r = (double*) malloc (N_POINTS_X * N_POINTS_Y * sizeof(double));
+                std::ofstream out_file;
+
+                cudaMalloc((void**) &cuda_r, N_POINTS_X * N_POINTS_Y * sizeof(double));
+
+                /* Computes grid dimension */
+                dim3 dimGrid( ceil( (float) N_POINTS_X / CudaDynamicSearch::THREAD_PER_BLOCK ), ceil( (float) N_POINTS_Y / CudaDynamicSearch::THREAD_PER_BLOCK));
+
+                /* Computes block dimensions (X, Y) */
+                dim3 dimBlock(CudaDynamicSearch::THREAD_PER_BLOCK, CudaDynamicSearch::THREAD_PER_BLOCK);
+
+        	summaryKernel<<< dimGrid, dimBlock >>>(this->cuda_result, cuda_r);
+
+                cudaMemcpy(host_r, cuda_r, N_POINTS_X * N_POINTS_Y * sizeof(double), cudaMemcpyDeviceToHost);
+
+                out_file.open ("plot_cudadynamicsearch.dat");
+                for (unsigned int i = 0; i < N_POINTS_X; i++) {
+                        for (unsigned int j = 0; j < N_POINTS_Y; j++) {
+
+                                int index = i * N_POINTS_X + j;
+                                out_file << host_r[index] << " ";
+                        }
+
+                        out_file << std::endl;
+                }
+
+                free(host_r);
+                cudaFree(cuda_r);
+                
+        }
+
 }
 
