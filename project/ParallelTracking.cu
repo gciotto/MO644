@@ -15,6 +15,8 @@ int main(int argc, char **argv) {
 
 	c.dynamical_aperture_search();
 
+        c.plot();
+
 	return 0;
 }
 
