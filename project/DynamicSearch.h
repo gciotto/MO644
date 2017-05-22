@@ -57,6 +57,9 @@ public:
 	DefaultDynamicSearch(unsigned int e, double pThreshold, double angThreshold, double deviationEnergyThreshold,
 						 unsigned int turns)
 				: DynamicSearch(e, pThreshold, angThreshold,  deviationEnergyThreshold, turns) {};
+	DefaultDynamicSearch(unsigned int e, unsigned int turns) 
+                                : DefaultDynamicSearch(e, POSITION_THRESHOLD, ANGULAR_THRESHOLD, DEVIATION_ENERGY_THRESHOLD, turns) {};
+
 
 	int dynamical_aperture_search();
 };

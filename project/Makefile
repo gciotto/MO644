@@ -10,9 +10,9 @@ CPPFLAGS += -O0 -Wall --std=c++11
 OBJS = DynamicSearch.o RingElement.o SerialTracking.o
 OBJS_ORIGINAL = tracking_skeleton.o
 
-NVCC = nvcc
+NVCC = /opt/cuda/bin/nvcc
 
-all: clean $(APP_NAME) $(APP_ORIGINAL) $(APP_CUDA)
+all: clean $(APP_NAME) $(APP_CUDA)
 
 %.o : %.c
 	$(CPP) $(CPP_FLAGS) $< -o $@
@@ -28,4 +28,4 @@ $(APP_CUDA):
 
 clean:
 	rm -f *.o
-	rm -f $(APP_NAME) $(APP_ORIGINAL)
+	rm -f $(APP_NAME) $(APP_ORIGINAL) $(APP_CUDA)

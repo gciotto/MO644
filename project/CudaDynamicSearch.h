@@ -27,6 +27,9 @@ public:
         	cudaMalloc ((void**) &this->cuda_result, N_POINTS_X * N_POINTS_Y * sizeof(pos_t));
         };
 
+        CudaDynamicSearch(unsigned int e, unsigned int turns)
+					: CudaDynamicSearch(e, POSITION_THRESHOLD, ANGULAR_THRESHOLD, DEVIATION_ENERGY_THRESHOLD, turns) {};
+
 	virtual ~CudaDynamicSearch();
 
 	int dynamical_aperture_search();

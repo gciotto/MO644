@@ -30,7 +30,6 @@ DynamicSearch::DynamicSearch() {
 DynamicSearch::DynamicSearch(unsigned int e, double pThreshold,
 					double angThreshold, double deviationEnergyThreshold,
 					unsigned int turns )
-
 					: DynamicSearch() {
 
 	this->positionThreshold = pThreshold;
@@ -59,8 +58,6 @@ void DynamicSearch::createRing() {
 }
 
 DynamicSearch::~DynamicSearch() {
-
-        std::cout << "DynamicSearch destructor called." << std::endl;
 
 	this->ring.clear();
         free(this->result_set);
@@ -98,7 +95,7 @@ void DynamicSearch::plot() {
 
                 std::ofstream out_file;
                 out_file.open ("plot_dynamicsearch.dat");
-
+                
                 for (unsigned int i = 0; i < N_POINTS_X; i++) {
                         for (unsigned int j = 0; j < N_POINTS_Y; j++) {
 
@@ -122,7 +119,8 @@ void DynamicSearch::plot() {
 
                         out_file << std::endl;
                 }
-                
+
+                out_file.close();
         }
 
 }

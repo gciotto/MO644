@@ -89,7 +89,6 @@ __global__ void dynamicSearchKernel(ring_element_t* c, pos_t *d, unsigned int tu
 
 CudaDynamicSearch::~CudaDynamicSearch() {
 
-    std::cout << "CudDynamicSearch destructor called." << std::endl;
     /* Clears everything up */
     this->ring.clear();
 
@@ -122,8 +121,6 @@ int CudaDynamicSearch::dynamical_aperture_search() {
 
 	/* Computes block dimensions (X, Y) */
 	dim3 dimBlock(CudaDynamicSearch::THREAD_PER_BLOCK, CudaDynamicSearch::THREAD_PER_BLOCK);
-
-	printf("%d %d %d\n", this->turns, this->repeat, this->ring.size());
 
 	/* Copies result to the host */
 	dynamicSearchKernel<<< dimGrid, dimBlock >>>(cuda_ring_element, this->cuda_result, this->turns, this->repeat, this->ring.size());
@@ -178,10 +175,10 @@ void CudaDynamicSearch::plot() {
                         out_file << std::endl;
                 }
 
+                out_file.close();
+
                 free(host_r);
                 cudaFree(cuda_r);
-                
         }
-
 }
 
