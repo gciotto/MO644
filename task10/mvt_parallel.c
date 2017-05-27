@@ -25,8 +25,8 @@ double rtclock()
 void init_array(float *A,float *x1,float *x2,float *y1,float *y2){
   int i,j;
 
-# pragma omp target device(GPU) map (to: x1[:N], x2[:N], y1[:N], y2[:N], A[:N*N])
-# pragma omp parallel for
+//# pragma omp target device(GPU) map (to: x1[:N], x2[:N], y1[:N], y2[:N], A[:N*N])
+//# pragma omp parallel for
   for(i = 0 ; i < N ; i++){
     x1[i] = ((float)i)/N;
     x2[i] = ((float)i + 1)/N;
@@ -103,31 +103,40 @@ que nenhuma tecnica de otimizacao deve ser utilizada. A segunda e a terceira, po
 
 A tabela 2 apresenta os resultados para as execucoes seriais do programa original.
 
-Tabela 1: Tempos de execucao (em s) obtidos para diferentes entradas e metodos de otimizacao
+Tabela 1: Media dos tempos de execucao (em s) obtidos para diferentes entradas e metodos de otimizacao
 ---------
 
 Entrada \ Otimiz.	none		tiling		vectorization
-MEDIUM			0.0301		0.0304		0.0302
-LARGE			0.1930		0.1915		0.1919
-EXTRA_LARGE		0.8688		0.7680		0.8437
+MEDIUM			0.02546		0.02616		0.02458
+LARGE			0.06090		0.05080 	0.07932
+EXTRA_LARGE		0.16762		0.16760		0.16934
 
 Tabela 2: Tempos de execucao para as execucoes seriais
 ---------
 Entrada 	Tempo (em s)
-MEDIUM		0.0369		
-LARGE		0.1979
-EXTRA_LARGE	0.8588
+MEDIUM		0.0280		
+LARGE		0.1660
+EXTRA_LARGE	0.9121
 
 Enfim, combinando-se as duas tabelas acima, obtem-se a tabela 3, que contem os speedups obtidos nas paralelizacoes.
 
 Tabela 3: Speedups obtidos pela paralelizacao
 ---------
 Entrada \ Otimiz.	none		tiling		vectorization
-MEDIUM			1.2260		1.2138		1.2219
-LARGE			1.0254		1.0334		1.0317		
-EXTRA_LARGE		0.9885		1.1182		1.0179
+MEDIUM			1.09976		1.07034		1.13913
+LARGE			2.72578		3.26771		2.09279		
+EXTRA_LARGE		5.44147		5.44212		5.38621
 
-Observa-se que nenhuma das optimizacoes propostas obteve um ganho de desempenho consideravel. Isso pode ser justificado pelo overhead gerado justamente para introduzir e produzir o codigo paralelo. Mesmo em grandes entradas, tais como a EXTRALARGE, nao foram obtidos quaisquer ganhos satisfatorios.
+Observa-se que quanto maior o conjunto de entrada maior é o speedup. Isso pode ser explicado pelo fato de que a fracao entre o tempo de overhead gerado pela paralelizacao e
+o proprio tempo de execucao torna-se cada vez mais pequena a medida que o conjunto de dados eh maior. A tabela 4, abaixo, que contem as porcentagens entre os tempos de transferencia de
+dados (_cl_offloading_read_write + _cl_read_buffer) para o dispositivo e o tempo de execucao serial, reflete bem esta afirmacao, ja que, para entradas menores, o razao correspondente a 
+transferencia eh superior. Por fim, a tecnica de otimizacao que apresentou melhores aumentos de performance eh a de tiling, com destaque para a entrada LARGE.
 
+Tabela 4: Porcentagens entre os tempos de transferencia de dados (_cl_offloading_read_write + _cl_read_buffer) para o dispositivo e o tempo de execucao serial
+---------
+Entrada \ Otimiz.	none		tiling		vectorization
+MEDIUM			0.25067		0.25287		0.25498
+LARGE			0.15276		0.15586 	0.15567
+EXTRA_LARGE		0.13072		0.12658		0.12973
 
 **/
