@@ -1,6 +1,6 @@
 #!/bin/sh
 
-#set -o xtrace
+set -o xtrace
 
 APP_SERIAL=mvt
 APP_PARALLEL=mvt_parallel
@@ -14,6 +14,7 @@ BUG_ACLANG_FLAGS="-fopenmp -omptargets=opencl-unknown-unknown"
 
 rm -f ${APP_SERIAL} ${APP_PARALLEL}
 rm -f *.out
+rm -f *.bc *.cl
 
 # Compile serial source file
 
@@ -24,12 +25,10 @@ for DEFINE in ${PARALLEL_DEFINE[@]}; do
 
        for FLAG in ${PARALLEL_FLAGS[@]}; do
 
-		echo "aclang ${BUG_ACLANG_FLAGS} ${ACLANG_FLAGS} -opt-poly=${FLAG} -D${DEFINE} -o ${APP_PARALLEL} ${APP_PARALLEL}.c"
-                aclang ${BUG_ACLANG_FLAGS} ${ACLANG_FLAGS} -opt-poly=${FLAG} -D${DEFINE} -o ${APP_PARALLEL} ${APP_PARALLEL}.c &> /dev/null
+#                aclang ${BUG_ACLANG_FLAGS} ${ACLANG_FLAGS} -opt-poly=${FLAG} -D${DEFINE} -o ${APP_PARALLEL} ${APP_PARALLEL}.c &> /dev/null
 
-                ./${APP_PARALLEL} &> ${APP_PARALLEL}_${DEFINE}_${FLAG}_bug.out
+#                ./${APP_PARALLEL} &> ${APP_PARALLEL}_${DEFINE}_${FLAG}_bug.out
 
-                echo "aclang ${ACLANG_FLAGS} -opt-poly=${FLAG} -D${DEFINE} -o ${APP_PARALLEL} ${APP_PARALLEL}.c"
                 aclang ${ACLANG_FLAGS} -opt-poly=${FLAG} -D${DEFINE} -o ${APP_PARALLEL} ${APP_PARALLEL}.c
 
                 ./${APP_PARALLEL} &> ${APP_PARALLEL}_${DEFINE}_${FLAG}.out
@@ -39,4 +38,3 @@ for DEFINE in ${PARALLEL_DEFINE[@]}; do
       done
 
 done
-

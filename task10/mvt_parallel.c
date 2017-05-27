@@ -10,7 +10,7 @@
   #define N 8192
 #endif
 
-#define GPU 0
+#define GPU 1
 
 double rtclock()
 {
@@ -78,10 +78,6 @@ int main(){
 
   float m = 0 , n = 0;
 
-# pragma omp target device(GPU) \
-                    map (from: x1[:N], x2[:N]) \
-                    map (to: n, m)
-# pragma omp parallel for
   for(int i = 0 ; i < N ; i++)
     m += x1[i] , n += x2[i];
 
@@ -95,3 +91,43 @@ int main(){
   free(y2);
 }
 
+/**
+
+Analise dos resultados
+----------------------
+
+Os dados da tabela 1, a seguir, foram coletados a partir da execucao de um programa paralelizado atraves de diretivas OpenMP e compilado pelo compilador
+aclang, desenvolvido por Marcio M Pereira no Instituto de Computacao da Unicamp. No total, foram realizados 9 testes, que abordaram tamanho variados de entradas e 
+diferentes tecnicas de otimizacao implementados pelo aclang e especificados pelo usuario por flags especificas. A primeira flag, none, comunica ao compilador
+que nenhuma tecnica de otimizacao deve ser utilizada. A segunda e a terceira, por sua vez, ativam, respectivamete, as otimizacoes de tiling e vetorizacao. 
+
+A tabela 2 apresenta os resultados para as execucoes seriais do programa original.
+
+Tabela 1: Tempos de execucao (em s) obtidos para diferentes entradas e metodos de otimizacao
+---------
+
+Entrada \ Otimiz.	none		tiling		vectorization
+MEDIUM			0.0301		0.0304		0.0302
+LARGE			0.1930		0.1915		0.1919
+EXTRA_LARGE		0.8688		0.7680		0.8437
+
+Tabela 2: Tempos de execucao para as execucoes seriais
+---------
+Entrada 	Tempo (em s)
+MEDIUM		0.0369		
+LARGE		0.1979
+EXTRA_LARGE	0.8588
+
+Enfim, combinando-se as duas tabelas acima, obtem-se a tabela 3, que contem os speedups obtidos nas paralelizacoes.
+
+Tabela 3: Speedups obtidos pela paralelizacao
+---------
+Entrada \ Otimiz.	none		tiling		vectorization
+MEDIUM			1.2260		1.2138		1.2219
+LARGE			1.0254		1.0334		1.0317		
+EXTRA_LARGE		0.9885		1.1182		1.0179
+
+Observa-se que nenhuma das optimizacoes propostas obteve um ganho de desempenho consideravel. Isso pode ser justificado pelo overhead gerado justamente para introduzir e produzir o codigo paralelo. Mesmo em grandes entradas, tais como a EXTRALARGE, nao foram obtidos quaisquer ganhos satisfatorios.
+
+
+**/
