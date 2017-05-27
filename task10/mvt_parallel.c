@@ -1,3 +1,7 @@
+/*
+* Parallel Computing - Gustavo Ciotto RA117136
+* Task #10
+*/
 #include <stdio.h>
 #include <sys/time.h>
 #include <stdlib.h>
@@ -25,8 +29,10 @@ double rtclock()
 void init_array(float *A,float *x1,float *x2,float *y1,float *y2){
   int i,j;
 
-//# pragma omp target device(GPU) map (to: x1[:N], x2[:N], y1[:N], y2[:N], A[:N*N])
-//# pragma omp parallel for
+/*
+  We could have added these two directives, but there is no increase in performance
+# pragma omp target device(GPU) map (to: x1[:N], x2[:N], y1[:N], y2[:N], A[:N*N])
+# pragma omp parallel for */
   for(i = 0 ; i < N ; i++){
     x1[i] = ((float)i)/N;
     x2[i] = ((float)i + 1)/N;
@@ -41,6 +47,7 @@ void init_array(float *A,float *x1,float *x2,float *y1,float *y2){
 void runMvt(float *a,float *x1,float *x2,float *y1,float *y2){
   int i , j;
 
+/* The following two directives transfer computing to the GPU device */
 # pragma omp target device(GPU) \
                     map (from: y1[:N], a[:N*N]) \
                     map (tofrom: x1[:N])
