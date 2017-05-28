@@ -50,12 +50,12 @@ __global__ void dynamicSearchKernel(ring_element_t* c, pos_t *d, unsigned int tu
         int j = blockDim.x * blockIdx.x + threadIdx.x,
             i = blockDim.y * blockIdx.y + threadIdx.y;
 
-        if (i < N_POINTS_X && j < N_POINTS_Y) {
+        if (i < N_POINTS_Y && j < N_POINTS_X) {
 
 		int index = i * N_POINTS_X + j;
 
-                double posx = x[0] + i * (x[1] - x[0])/(N_POINTS_X - 1),
-                       posy = y[0] + j * (y[1] - y[0])/(N_POINTS_Y - 1);
+                double posx = __fma_rn(i, (x[1] - x[0]) * __drcp_rn(N_POINTS_X - 1), x[0]),
+                       posy = __fma_rn(j, (y[1] - y[0]) * __drcp_rn(N_POINTS_Y - 1), y[0]);
 
                 pos_t r = {posx, 0, posy, 0, 0, 0};
 
@@ -66,16 +66,16 @@ __global__ void dynamicSearchKernel(ring_element_t* c, pos_t *d, unsigned int tu
                                         ring_element_t aux = c[m];
 
                                         if (aux.type == RingElement::DRIFT) {
-						r[0] += aux.length * r[1];
-						r[2] += aux.length * r[3];
+						r[0] = __fma_rn(aux.length, r[1], r[0]);
+						r[2] = __fma_rn(aux.length, r[3], r[2]);
                                         }
                                         else if (aux.type == RingElement::QUADRUPOLE) {
-						r[1] += -r[0]/aux.focal_distance;
-						r[3] +=  r[2]/aux.focal_distance;
+						r[1] = __fma_rn(-r[0], __drcp_rn(aux.focal_distance), r[1]);
+						r[3] = __fma_rn( r[2], __drcp_rn(aux.focal_distance), r[3]);
                                         }
                                         else if (aux.type == RingElement::SEXTUPOLE) {
-						r[1] += aux.sextupole_strength * aux.length * (r[0]*r[0] - r[2]*r[2]);
-						r[3] += aux.sextupole_strength * aux.length * 2 * r[0]*r[2];
+						r[1] = __fma_rn(aux.sextupole_strength, aux.length * (r[0]*r[0] - r[2]*r[2]), r[1]);
+						r[3] = __fma_rn(aux.sextupole_strength, aux.length * 2 * r[0]*r[2], r[3]);
                                         }
                                 }
 		}
