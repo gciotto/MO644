@@ -146,7 +146,7 @@ int DefaultDynamicSearch::dynamical_aperture_search() {
         this->result_set[index][2] = posy;
         this->result_set[index][1] = this->result_set[index][3] = this->result_set[index][4] = this->result_set[index][5] = 0;
 
-        for(unsigned int i = 0; i < this->turns; ++i) {
+        for(unsigned int k = 0; k < this->turns; ++k) {
         	this->performOneTurn(this->result_set[index]);
         }
 
