@@ -10,7 +10,7 @@
 
 #include "DynamicSearch.h"
 
-const unsigned int N_THREADS = 8;
+const unsigned int N_THREADS = 4;
 
 class OpenMPDynamicSearch: public DynamicSearch {
 
@@ -20,12 +20,12 @@ public:
 	};
 
 	OpenMPDynamicSearch(unsigned int e, unsigned int turns)
-	      : DefaultDynamicSearch(e, POSITION_THRESHOLD, ANGULAR_THRESHOLD, DEVIATION_ENERGY_THRESHOLD, turns) {
+	      : DynamicSearch(e, POSITION_THRESHOLD, ANGULAR_THRESHOLD, DEVIATION_ENERGY_THRESHOLD, turns) {
 		this->n_threads = N_THREADS;
 	};
 
 	OpenMPDynamicSearch(unsigned int e, unsigned int turns, int threads)
-		      : DefaultDynamicSearch(e, POSITION_THRESHOLD, ANGULAR_THRESHOLD, DEVIATION_ENERGY_THRESHOLD, turns) {
+	      : DynamicSearch(e, POSITION_THRESHOLD, ANGULAR_THRESHOLD, DEVIATION_ENERGY_THRESHOLD, turns) {
 			this->n_threads = threads;
 	};
 

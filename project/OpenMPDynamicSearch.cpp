@@ -15,8 +15,7 @@ int OpenMPDynamicSearch::dynamical_aperture_search() {
 
     unsigned int nr_stable_points = 0;
 
-# pragma omp parallel num_threads(this->n_threads) default(none) \
-					  shared(x, y, this->result_set, nr_stable_points) private(i, j, k, posx, posy, index)
+# pragma omp parallel for num_threads(this->n_threads)
     for(unsigned int i = 0; i < N_POINTS_X; ++i) {
       for(unsigned int j = 0; j < N_POINTS_Y; ++j) {
 
@@ -33,14 +32,15 @@ int OpenMPDynamicSearch::dynamical_aperture_search() {
         	this->performOneTurn(this->result_set[index]);
         }
 
-        if (this->testSolution(this->result_set[index]))
+        if (this->testSolution(this->result_set[index])) {
 
-# 				pragma omp atomic
-        		nr_stable_points++;
+# 		pragma omp atomic
+        	nr_stable_points++;
 
                 printf ("%f %f %f %f %f %f (%d / %d) - (%d)\n", this->result_set[index][0], this->result_set[index][1],
                                 this->result_set[index][2], this->result_set[index][3], this->result_set[index][4], this->result_set[index][5],
                                 nr_stable_points , N_POINTS_X * N_POINTS_Y, index);
+        }
       }
     }
 
