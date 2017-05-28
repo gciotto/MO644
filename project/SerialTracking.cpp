@@ -13,13 +13,8 @@ int main(int argc, char **argv) {
 
         unsigned int repeat, turns;
 
-        if (argc != 3) {
-                std::cout << "Not enough parameters" << std::endl;            
-                return 0;
-        }
-
-        repeat = atoi(argv[1]);
-        turns = atoi(argv[2]);
+        std::cin >> repeat;
+        std::cin >> turns;
 
 	DefaultDynamicSearch d(repeat, turns);
 	d.createRing();
