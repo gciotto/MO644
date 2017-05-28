@@ -14,6 +14,8 @@ BUG_ACLANG_FLAGS="-fopenmp -omptargets=opencl-unknown-unknown"
 
 N=5
 
+TIME_PARALLEL_LINE=11
+
 rm -f ${APP_SERIAL} ${APP_PARALLEL}
 rm -f *.out *.avg
 rm -f *.bc *.cl
@@ -36,8 +38,6 @@ for DEFINE in ${PARALLEL_DEFINE[@]}; do
 		# Discards first execution
                 ./${APP_PARALLEL} &> ${APP_PARALLEL}_${DEFINE}_${FLAG}_${I}.out
 
-#               ./${APP_PARALLEL} &> ${APP_PARALLEL}_${DEFINE}_${FLAG}_${I}.out
-
 		SUM=0.0
                 SUM_READ_TIMES=0.0
                 SUM_EXEC_TIMES=0.0
@@ -45,12 +45,12 @@ for DEFINE in ${PARALLEL_DEFINE[@]}; do
 
 	                ./${APP_PARALLEL} &> ${APP_PARALLEL}_${DEFINE}_${FLAG}_${I}.out
 
-#	                ./${APP_PARALLEL} &> ${APP_PARALLEL}_${DEFINE}_${FLAG}_${I}.out
+			diff ${APP_PARALLEL}_${DEFINE}_${FLAG}_${I}.out ${APP_SERIAL}_${DEFINE}.out
 
-			TIME_PARALLEL=$(sed '12q;d' ${APP_PARALLEL}_${DEFINE}_${FLAG}_${I}.out)
+			TIME_PARALLEL=$(sed "${TIME_PARALLEL_LINE}q;d" ${APP_PARALLEL}_${DEFINE}_${FLAG}_${I}.out)
 			SUM=$(echo ${SUM} + ${TIME_PARALLEL} | bc -l)
 
-                        TIMES_READ_BUFFER=$(cat ${APP_PARALLEL}_${DEFINE}_${FLAG}_${I}.out | grep -e _cl_read_buffer -e _cl_offloading_read_write | awk '{print $4}')
+                        TIMES_READ_BUFFER=$(cat ${APP_PARALLEL}_${DEFINE}_${FLAG}_${I}.out | grep -e _cl_read_buffer -e _cl_offloading | awk '{print $4}')
                         SUM_TIMES=0.0
                         for TIME in ${TIMES_READ_BUFFER}; do
 
