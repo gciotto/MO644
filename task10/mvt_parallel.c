@@ -51,19 +51,21 @@ void runMvt(float *a,float *x1,float *x2,float *y1,float *y2){
 
         int i , j;
 
-/* Maps data to the GPU */
+/* Maps data to the GPU. It's better to copy the data at once. We do not suffer from offerloading delays twice. */
 # pragma omp target data device(GPU) \
                     map (to: y1[:N], a[:N*N], y2[:N]) \
                     map (tofrom: x1[:N], x2[:N])
 {
 
-        /* The following two directives transfer computing to the GPU device */
-        # pragma omp parallel for default(none) shared(a, x1, y1) private(i, j)
+        /* The following two directives move computing to the device */
+
+	/* collapse(1) explanation in the end of the file */
+        # pragma omp parallel for collapse(1)
           for(i = 0; i < N ; i++)
             for(j = 0 ; j < N ; j++)
               x1[i] += a[i*N + j] * y1[j];
 
-        # pragma omp parallel for default(none) shared(a, x2, y2) private(i, j)
+        # pragma omp parallel for collapse(1)
           for(i = 0; i < N ; i++)
             for(j = 0 ; j < N ; j++)
               x2[i] += a[j*N + i] * y2[j];
@@ -119,36 +121,73 @@ Tabela 1: Media dos tempos de execucao (em s) obtidos para diferentes entradas e
 ---------
 
 Entrada \ Otimiz.	none		tiling		vectorization
-MEDIUM			0.01886		0.01868		0.01864
-LARGE			0.03022		0.03024 	0.03016
-EXTRA_LARGE		0.07060		0.07092		0.07112
+MEDIUM			0.02316		0.02060		0.02092
+LARGE			0.03370		0.03378 	0.03426
+EXTRA_LARGE		0.07694		0.07694		0.07870
 
 Tabela 2: Tempos de execucao para as execucoes seriais
 ---------
 Entrada 	Tempo (em s)
-MEDIUM		0.0308		
-LARGE		0.2093
-EXTRA_LARGE	0.8909
+MEDIUM		0.0311		
+LARGE		0.1986
+EXTRA_LARGE	0.8863
 
 Enfim, combinando-se as duas tabelas acima, obtem-se a tabela 3, que contem os speedups obtidos nas paralelizacoes.
 
 Tabela 3: Speedups obtidos pela paralelizacao
 ---------
 Entrada \ Otimiz.	none		tiling		vectorization
-MEDIUM			1.63308		1.64882 	1.65236
-LARGE			6.92588		6.92129		6.93965		
-EXTRA_LARGE		12.6189		12.5620		12.5267
+MEDIUM			1.34283		1.50970 	1.48661
+LARGE			5.89317		5.87921		5.79684		
+EXTRA_LARGE		11.5193		11.2904		11.2617
 
 Observa-se que quanto maior o conjunto de entrada maior é o speedup. Isso pode ser explicado pelo fato de que a fracao entre o tempo de overhead gerado pela paralelizacao e
 o proprio tempo de execucao torna-se cada vez mais pequena a medida que o conjunto de dados eh maior. A tabela 4, abaixo, que contem as porcentagens entre os tempos de transferencia de
 dados (_cl_offloading_read_* + _cl_read_buffer) para o dispositivo e o tempo de execucao serial, reflete bem esta afirmacao, ja que, para entradas menores, o razao correspondente a 
 transferencia eh superior. Por fim, a tecnica de otimizacao que apresentou melhores aumentos de performance eh a de vetorizacao.
 
-Tabela 4: Porcentagens entre os tempos de transferencia de dados (_cl_offloading_read_* + _cl_read_buffer) para o dispositivo e o tempo de execucao serial
+Tabela 4: Porcentagens entre os tempos de transferencia de dados (_cl_offloading_read_* + _cl_read_buffer) para o dispositivo e o tempo de execucao serial. Valor absoluto, em s, entre parenteses 
 ---------
-Entrada \ Otimiz.	none		tiling		vectorization
-MEDIUM			0.09333		0.09094		0.09113
-LARGE			0.05085		0.05074 	0.05033
-EXTRA_LARGE		0.04087		0.04148		0.04145
+Entrada \ Otimiz.	none			tiling			vectorization
+MEDIUM			0.09293 (0.00289)	0.09015	(0.00280)	0.09125 (0.00283)
+LARGE			0.05160	(0.01024)	0.05275 (0.01047)	0.05273 (0.01047)
+EXTRA_LARGE		0.04098 (0.03632)	0.04093 (0.03628)	0.04117 (0.03649)
 
+Uso de collapse(1)
+------------------
+
+O uso de collapse produziu o seguinte kernel em openCL
+
+__kernel void kernel_4ZxIoe(__global float *y1, __global float *a, __global float *y2, __global float *x1, __global float *x2, int _UB_0, int _MIN_0, int _INC_0, int j)
+{
+  int _ID_0 = get_global_id(0);
+  int i = (_INC_0 * _ID_0) + _MIN_0;
+  if (_ID_0 < _UB_0)
+  {
+    for (j = 0; j < 2048; j++)
+      x1[i] += a[(i * 2048) + j] * y1[j];
+
+    ;
+  }
+}
+
+enquanto que sua ausencia, por sua vez, resultou no seguinte codigo
+
+__kernel void kernel_JD3JIP(__global float *y1, __global float *a, __global float *y2, __global float *x1, __global float *x2, int _UB_0, int _MIN_0, int _INC_0, int _UB_1, int _MIN_1, int _INC_1)
+{
+  int _ID_0 = get_global_id(0);
+  int _ID_1 = get_global_id(1);
+  int i = (_INC_0 * _ID_0) + _MIN_0;
+  int j = (_INC_1 * _ID_1) + _MIN_1;
+  if ((_ID_0 < _UB_0) && (_ID_1 < _UB_1))
+  {
+    x1[i] += a[(j * 2048) + i] * y1[j];
+  }
+
+}
+
+Quando utilizamos o parametro collapse(n), estamos indicando ao compilador que n loops internos devem incorporados ao 
+codigo que sera dividido entre as threads. No exemplo acima, verificamos, no primeiro caso, exatamente esta afirmacao
+a medida que todo o loop interno eh copiado para dentro do kernel. No segundo, por outro lado, realiza-se apenas uma soma, 
+o que produzia um resultado invalido e diferente a cada execucao do programa.
 **/
