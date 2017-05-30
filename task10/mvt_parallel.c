@@ -34,7 +34,7 @@ void init_array(float *A,float *x1,float *x2,float *y1,float *y2){
 
 /* We could have added these two directives, but there is no increase in performance 
 # pragma omp target device(GPU) map (from: x1[:N], x2[:N], y1[:N], y2[:N], A[:N*N])
-# pragma omp parallel for 
+# pragma omp parallel for collapse(1)
 */
         for(i = 0 ; i < N ; i++){
                 x1[i] = ((float)i)/N;
@@ -59,7 +59,7 @@ void runMvt(float *a,float *x1,float *x2,float *y1,float *y2){
 
         /* The following two directives move computing to the device */
 
-	/* collapse(1) explanation in the end of the file */
+	/* collapse(1) explanation in the end of the file. 'Include' 1 nested loop inside kernel. */
         # pragma omp parallel for collapse(1)
           for(i = 0; i < N ; i++)
             for(j = 0 ; j < N ; j++)
@@ -110,10 +110,10 @@ int main(){
 Analise dos resultados
 ----------------------
 
-Os dados da tabela 1, a seguir, foram coletados a partir da execucao de um programa paralelizado atraves de diretivas OpenMP e compilado pelo compilador
-aclang, desenvolvido por Marcio M Pereira no Instituto de Computacao da Unicamp. No total, foram realizados 9 testes, que abordaram tamanho variados de entradas e 
+Os dados da tabela 1, a seguir, foram coletados a partir da execucao de um programa paralelizado atraves de diretivas OpenMP e compilado pelo
+aclang, desenvolvido por Marcio M Pereira no Instituto de Computacao da Unicamp. No total, foram realizados 9 testes, que abordaram tamanhos variados de entradas e 
 diferentes tecnicas de otimizacao implementados pelo aclang e especificados pelo usuario por flags especificas. A primeira flag, none, comunica ao compilador
-que nenhuma tecnica de otimizacao deve ser utilizada. A segunda e a terceira, por sua vez, ativam, respectivamete, as otimizacoes de tiling e vetorizacao. 
+que nenhuma tecnica de otimizacao deve ser utilizada. A segunda e a terceira, por sua vez, ativam, respectivamente, as otimizacoes de tiling e vetorizacao. 
 
 A tabela 2 apresenta os resultados para as execucoes seriais do programa original.
 
@@ -132,7 +132,7 @@ MEDIUM		0.0311
 LARGE		0.1986
 EXTRA_LARGE	0.8863
 
-Enfim, combinando-se as duas tabelas acima, obtem-se a tabela 3, que contem os speedups obtidos nas paralelizacoes.
+Enfim, combinando-se as duas tabelas acima, obtem-se a tabela 3 com os speedups obtidos nas paralelizacoes.
 
 Tabela 3: Speedups obtidos pela paralelizacao
 ---------
@@ -142,11 +142,11 @@ LARGE			5.89317		5.87921		5.79684
 EXTRA_LARGE		11.5193		11.2904		11.2617
 
 Observa-se que quanto maior o conjunto de entrada maior é o speedup. Isso pode ser explicado pelo fato de que a fracao entre o tempo de overhead gerado pela paralelizacao e
-o proprio tempo de execucao torna-se cada vez mais pequena a medida que o conjunto de dados eh maior. A tabela 4, abaixo, que contem as porcentagens entre os tempos de transferencia de
-dados (_cl_offloading_read_* + _cl_read_buffer) para o dispositivo e o tempo de execucao serial, reflete bem esta afirmacao, ja que, para entradas menores, o razao correspondente a 
-transferencia eh superior. Por fim, a tecnica de otimizacao que apresentou melhores aumentos de performance eh a de vetorizacao.
+o proprio tempo de execucao torna-se cada vez mais pequena a medida que o conjunto de dados eh maior. A tabela 4 abaixo, que contem as porcentagens entre os tempos de transferencia de
+dados para o dispositivo (_cl_offloading_read_* + _cl_read_buffer) e o tempo de execucao serial, reflete bem esta afirmacao, ja que, para entradas menores, a razao correspondente a 
+transferencia eh superior. Por fim, a tecnica de otimizacao que apresentou melhores aumentos de performance eh a de tiling.
 
-Tabela 4: Porcentagens entre os tempos de transferencia de dados (_cl_offloading_read_* + _cl_read_buffer) para o dispositivo e o tempo de execucao serial. Valor absoluto, em s, entre parenteses 
+Tabela 4: Porcentagens entre os tempos de transferencia de dados (_cl_offloading_read_* + _cl_read_buffer) para o dispositivo e o tempo de execucao serial. Valor absoluto, em s, entre parenteses. 
 ---------
 Entrada \ Otimiz.	none			tiling			vectorization
 MEDIUM			0.09293 (0.00289)	0.09015	(0.00280)	0.09125 (0.00283)
@@ -188,6 +188,7 @@ __kernel void kernel_JD3JIP(__global float *y1, __global float *a, __global floa
 
 Quando utilizamos o parametro collapse(n), estamos indicando ao compilador que n loops internos devem incorporados ao 
 codigo que sera dividido entre as threads. No exemplo acima, verificamos, no primeiro caso, exatamente esta afirmacao
-a medida que todo o loop interno eh copiado para dentro do kernel. No segundo, por outro lado, realiza-se apenas uma soma, 
+uma vez que todo o loop interno eh copiado para dentro do kernel. No segundo, por outro lado, realiza-se apenas uma soma, 
 o que produzia um resultado invalido e diferente a cada execucao do programa.
+
 **/
