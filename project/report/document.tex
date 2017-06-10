@@ -6,6 +6,7 @@
 \usepackage{csvsimple}
 \usepackage{subfigure}
 
+\usepackage{listings}
 \usepackage{amssymb}% http://ctan.org/pkg/amssymb
 \usepackage{pifont}% http://ctan.org/pkg/pifont
 \newcommand{\cmark}{\ding{51}}%
@@ -99,12 +100,80 @@ divergence} e acessos \textit{non-coalesced} à memória.
 As próximas seções são dedicadas aos processos de implementação e aos resultados
 obtidos.
 
-
 \section {Análise da execução sequencial}
 
 Com o intuito de identificar qual trecho do programa possui o maior potencial de
-paralelização, isto é, onde a execução permanece por mais tempo, a ferramenta
-\texttt{gprof} foi utilizada.
+paralelização, a ferramenta \texttt{gprof} foi utilizada. Esse aplicativo é
+capaz de calcular o tempo de execução gasto para cada função, permitindo, assim,
+ao desenvolvedor uma visão global do desempenho do seu programa. Em
+essência, duas análises sõa oferecidas por ele, sendo elas, a \textit {flat
+profile} e a \textit{call graph}. A primeira mostra quanto tempo o programa
+gastou em cada função e quantas vezes tal função foi chamada. A segunda, por sua
+vez, permite, para cada função, visualizar quais outras funções ela chamou
+e por quais outras funções ela foi chamada. Essa análise pode ser útil para a
+determinação de trechos em que chamadas que tomam muito tempo podem ser
+economizadas.
+
+A tabela \ref{tab:flat} abaixo corresponde à fração mais relevante da análise
+\textit{flat profile}, obtida através da execução da versão sequencial da
+simulação com \(N = 10\). 
+
+\begin{table}[h]
+    \centering
+    \small
+	\caption{\label{tab:flat} Análise \textit{flat profile} da execução sequencial.}
+	\begin{tabular}{| p{0.09\textwidth} | p{0.1\textwidth} | p{0.1\textwidth} |
+	p{0.125\textwidth} | c | }
+		\hline
+		\textbf{\% time} & \textbf{cumul. seconds} & \textbf{self seconds} &
+		\textbf{calls} & \textbf{name} \\ \hline 
+		28.87 & 2.27 & 2.27  & 100000  & DynamicSearch::\textbf{performOneTurn(double (\&))} \\\hline 
+		15.77 & 3.51 & 1.24  & 1200000020 & std::vector\(<\)RingElement\(>\)::\textbf{size()} const \\\hline 
+		15.58 & 4.74 & 1.23  & 400000000  & Drift::\textbf{pass(double (\&))} \\\hline
+		14.12 & 5.85 & 1.11  & 400000000  & Quadrupole::\textbf{pass(double (\&)} \\\hline
+		11.64 & 6.77 & 0.92  & 200000000  & Sextupole::\textbf{pass(double (\&)} \\\hline
+		11.45 & 7.67 & 0.90  & 100000000  & std::vector::\textbf{operator[]}(unsigned
+		long) \\\hline \ldots & & & & \\\hline
+	\end{tabular}
+\end{table}
+
+Observa-se, por meio dela, que 97.43\% de todo o tempo
+gasto pelo programa está concentrado em apenas 6 funções. A análise do corpo da
+função \texttt{dynamical\_aperture\_search()} (contido no arquivo
+\texttt{DynamicSearch.cpp}) explica perfeitamente a afirmação anterior, à medida
+que explicita três \textit{loops} encadeados. Os dois primeiros são responsáveis
+por iterar sobre o conjunto de condições iniciais (de cardinalidade \(I\)),
+enquanto que o segundo, por submeter cada uma das condições iniciais a \(N\)
+voltas pelos atuadores. A cada iteração do laço mais interior, realiza-se uma
+chamada à função \texttt{performOneTurn(double *)}, que, por sua vez, chama o
+método \texttt{pass} de cada um dos \(M\) atuadores.
+Desta forma, em linhas gerais, \(I * N * M\) iterações serão executadas apenas
+neste trecho de código. É importante ressaltar que os dois \textit{loops}
+responsáveis pela iteração sobre as condições iniciais podem ser classificados
+como \textit{doall loops} e, portanto, podem ser paralelizados, contrariamente,
+ao mais interior e aquele da função \texttt{performOneTurn}, cujas iterações
+dependem obrigatoriamente de suas anteriores, sendo assim, portanto,
+classificados como \textit{doacross loops}.
+
+% \begin{table}[h]
+%     \centering
+%     \small
+% 	\caption{\label{tab:call} Análise \textit{call graph} da execução sequencial.}
+% 	\begin{tabular}{| p{0.09\textwidth} | p{0.1\textwidth} | p{0.10\textwidth} | l | }
+% 		\hline
+% 		\textbf{\% time} & \textbf{self seconds} & \textbf{children}  & \textbf{name} \\ \hline 
+% 		 & 2.27 & 5.39 & \textbf{DefaultDynamicSearch::dynamical\_aperture\_search()} \\\hline
+% 		 \textbf{97.3} & 2.27 & 5.39 & DynamicSearch::\textbf{performOneTurn(double (\&))} \\\hline
+% 		 & 1.24 & 0 & std::vector::operator[](unsigned long) \\\hline
+% 		 & 1.24 & 0 & std::vector::operator[](unsigned long) \\\hline
+% 		 & 1.23 & 0 & Drift::\textbf{pass(double (\&))} \\\hline
+% 		 & 1.11 & 0 & Quadrupole::\textbf{pass(double (\&)} \\\hline
+% 		 & 0.92 & 0 & Sextupole::\textbf{pass(double (\&)} \\\hline
+% 		 \ldots & & & \\\hline
+% 	\end{tabular}
+% \end{table}
+
+\section {Paralelização}
 
 \section{Resultados}
 
