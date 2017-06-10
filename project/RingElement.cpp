@@ -33,6 +33,6 @@ void Quadrupole::pass(pos_t &e) {
 
 void Sextupole::pass(pos_t &e) {
 
-	e[1] += this->sextupole_strength * this->length * (e[0]*e[0] - e[2]*e[2]);
-	e[3] += this->sextupole_strength * this->length * 2 * e[0]*e[2];
+	e[1] = (e[0]*e[0] - e[2]*e[2]) * (this->sextupole_strength * this->length) + e[1];
+	e[3] = (2.0 * e[0]*e[2]) * (this->sextupole_strength * this->length) + e[3];
 }

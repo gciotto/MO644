@@ -14,7 +14,7 @@ OBJS = DynamicSearch.o RingElement.o SerialTracking.o
 OBJS_ORIGINAL = tracking_skeleton.o
 
 NVCC = /opt/cuda/bin/nvcc
-NVCCFLAGS = -std=c++11 -ftz=false -prec-div=true -prec-sqrt=true
+NVCCFLAGS = -std=c++11 -DCUDA_FMA
 
 INPUT = $(wildcard input/*.dat)
 OUTPUT = output.dat

@@ -11,6 +11,7 @@
 #include <iostream>
 #include <fstream>
 
+
 typedef struct {
 
         unsigned int type;
@@ -54,8 +55,16 @@ __global__ void dynamicSearchKernel(ring_element_t* c, pos_t *d, unsigned int tu
 
 		int index = i * N_POINTS_X + j;
 
-                double posx = __fma_rn(i, (x[1] - x[0]) * __drcp_rn(N_POINTS_X - 1), x[0]),
-                       posy = __fma_rn(j, (y[1] - y[0]) * __drcp_rn(N_POINTS_Y - 1), y[0]);
+#ifdef CUDA_INTRINSICS
+                double posx = __dadd_rn(x[0], __dmul_rn(i, __ddiv_rn(x[1] - x[0], N_POINTS_X - 1.0))),
+                       posy = __dadd_rn(y[0], __dmul_rn(j, __ddiv_rn(y[1] - y[0], N_POINTS_Y - 1.0)));
+#elif CUDA_FMA
+		double  posx = __fma_rn(i, (x[1] - x[0]) * __drcp_rn(N_POINTS_X - 1.0), x[0]),
+			posy = __fma_rn(j, (y[1] - y[0]) * __drcp_rn(N_POINTS_Y - 1.0), y[0]);
+#else
+                double posx = x[0] + i*(x[1] - x[0])/(N_POINTS_X - 1.0),
+                       posy = y[0] + j*(y[1] - y[0])/(N_POINTS_Y - 1.0);
+#endif
 
                 pos_t r = {posx, 0, posy, 0, 0, 0};
 
@@ -66,16 +75,43 @@ __global__ void dynamicSearchKernel(ring_element_t* c, pos_t *d, unsigned int tu
                                         ring_element_t aux = c[m];
 
                                         if (aux.type == RingElement::DRIFT) {
+
+						#ifdef CUDA_INTRINSICS
+						r[0] = __dadd_rn(r[0], __dmul_rn(aux.length, r[1]));
+						r[2] = __dadd_rn(r[2], __dmul_rn(aux.length, r[3]));
+						#elif CUDA_FMA
 						r[0] = __fma_rn(aux.length, r[1], r[0]);
 						r[2] = __fma_rn(aux.length, r[3], r[2]);
+						#else
+						r[0] += aux.length * r[1];
+						r[2] += aux.length * r[3];
+						#endif
                                         }
                                         else if (aux.type == RingElement::QUADRUPOLE) {
+
+						#ifdef CUDA_INTRINSICS
+						r[1] = __dadd_rn(r[1], __dmul_rn(-1.0, __ddiv_rn(r[0], aux.focal_distance)));
+						r[3] = __dadd_rn(r[3], __ddiv_rn(r[2], aux.focal_distance));
+						#elif CUDA_FMA
 						r[1] = __fma_rn(-r[0], __drcp_rn(aux.focal_distance), r[1]);
 						r[3] = __fma_rn( r[2], __drcp_rn(aux.focal_distance), r[3]);
+						#else
+						r[1] += -r[0]/aux.focal_distance;
+						r[3] += r[2]/aux.focal_distance;
+						#endif
                                         }
                                         else if (aux.type == RingElement::SEXTUPOLE) {
-						r[1] = __fma_rn(aux.sextupole_strength, aux.length * (r[0]*r[0] - r[2]*r[2]), r[1]);
-						r[3] = __fma_rn(aux.sextupole_strength, aux.length * 2 * r[0]*r[2], r[3]);
+
+						#ifdef CUDA_INTRINSICS
+						r[1] = __dadd_rn(r[1], __dmul_rn(__dmul_rn(aux.sextupole_strength, aux.length), __dadd_rn(__dmul_rn(r[0],r[0]), __dmul_rn(-1.0, __dmul_rn(r[2], r[2])))));
+						r[3] = __dadd_rn(r[3], __dmul_rn(__dmul_rn(aux.sextupole_strength, aux.length), __dmul_rn(2.0, __dmul_rn(r[0], r[2]))));
+						#elif CUDA_FMA
+						r[1] = __fma_rn(aux.sextupole_strength * aux.length, (r[0]*r[0] - r[2]*r[2]), r[1]);
+						r[3] = __fma_rn(aux.sextupole_strength * aux.length, 2.0 * r[0] * r[2], r[3]);
+						#else
+						r[1] += aux.sextupole_strength * aux.length * (r[0]*r[0] - r[2]*r[2]);
+						r[3] += aux.sextupole_strength * aux.length * 2 * r[0]*r[2];
+						#endif
                                         }
                                 }
 		}
