@@ -1,0 +1,120 @@
+\documentclass[12pt]{article}
+
+\usepackage{sbc-template}
+
+\usepackage{graphicx,url}
+\usepackage{csvsimple}
+\usepackage{subfigure}
+
+\usepackage{amssymb}% http://ctan.org/pkg/amssymb
+\usepackage{pifont}% http://ctan.org/pkg/pifont
+\newcommand{\cmark}{\ding{51}}%
+\newcommand{\xmark}{\ding{55}}%
+
+\usepackage{multirow}
+\usepackage[brazil]{babel}    
+\usepackage[utf8]{inputenc}
+ 
+\sloppy
+
+\title{Simulação de \textit{tracking} da dinâmica dos elétrons em um acelerador
+síncrotron}
+
+\author{Gustavo Ciotto Pinton\inst{1} - RA117136 }
+
+
+\address{Instituto de Computação -- Universidade Estadual de Campinas
+(UNICAMP)\\
+  Av. Albert Einstein, 1251, Cidade Universitária, Campinas/SP \\
+  Brasil, CEP 13083-852, Fone: [19] 3521-5838
+  \email{gustavociotto@gmail.com}
+}
+
+\begin{document} 
+
+\maketitle
+
+\begin{abstract}
+This report presents and describes the main aspects of the development of a
+parallel solution for a sequential algorithm, whose purpose is simulating
+the dynamics (modeled by a 6-element vector \(X\)) of electrons that
+run through a synchrotron accelerator. In general, in this algorithm, the whole
+extension of the accelerator is divided into several elements capable of
+changing the state of each electron in a certain way, and it is sought to
+determine which initial conditions of \(X\) will meet some conditions after a
+certain number of revolutions. All the parallelization was based on GPUs and the
+CUDA library, obtaining gains of performance of the order of 3000\% in relation
+to the serial execution.
+\end{abstract}
+     
+\begin{resumo} 
+Este relatório apresenta e descreve os principais aspectos do
+desenvolvimento de uma solução paralela para um algoritmo sequencial de
+simulação da dinâmica do movimento dos elétrons (modelado por um vetor \(X\) de
+6 posições) que percorrem um acelerador síncrotron. De maneira geral, neste
+algoritmo, divide-se toda a extensão do acelerador em diversos elementos capazes de alterar o estado de cada életron de
+uma determinada maneira, e busca-se quais condições iniciais de \(X\) atenderão
+algumas condições após um determinado número de voltas. Toda a paralelização foi
+baseada em GPUs e na biblioteca CUDA, obtendo-se ganhos de performance da ordem
+de 3000\% em relação à execução serial.
+\end{resumo}
+
+
+\section{Introdução}
+
+Aceleradores de partículas síncrotron são constituídos, ao longo de todas suas
+circunferências, de atuadores, tais como dipolos, quadrupólos e sextupólos,
+responsáveis por modificar a direção dos elétrons através da imposição de campos
+magnéticos. Pode-se modelar o estado de um elétron na entrada do acelerador por
+um vetor no espaço de fase constituído por 6 elementos \( X = (x_1, x_2, \ldots,
+x_6) \). A cada passagem por um determinado atuador, esse vetor é modificado por
+um mapa \(F_n(X)\) que depende, evidentemente, do tipo de atuador e de seus
+parâmetros. A simulação de \textit{tracking} da dinâmica de movimento dos
+elétrons consiste, portanto, em determinar quais vetores iniciais \(X_i\) neste
+espaço de fase correspondem à órbitas estáveis após o percurso de \(N\) voltas
+pelo acelerador. Um vetor \(X_i\) pode ser considerado uma
+órbita estável somente se, ao fim de \(N\) voltas completas, as posições \(x_1,
+\ldots, x_6 \) são inferiores às constantes \(C_1, \ldots, C_6\). A explicação
+dos significados físicos de cada uma dessas posições não faz parte do escopo
+deste artigo.
+
+Durante os experimentos, o acelerador foi modelado por um número
+constante \(M = 10000\) de atuadores e a cardinalidade do conjunto de vetores
+iniciais testados foi igual a \(I = 10000\). Além disso, variou-se o número de
+voltas \(N\) entre 10 e 10000, de modo a avaliar o ganho de performance em
+função do número total de iterações desenvolvidas.
+
+Aproveitando-se a alta densidade de \textit{cores} de arquitetura SIMD
+encontrada nas GPUs atuais, a paralelização desta simulação consistiu em
+distribuir o cálculo de cada condição inicial \(X_i\) em uma \textit{thread}
+distinta executada pela GPU, de modo a maximizar a quantidade de
+\textit{threads} que rodam simultaneamente. A implementação foi a baseada no
+\textit{toolkit CUDA}, desenvolvido para as placas de vídeo da \textit{NVIDIA}.
+Como todos os vetores \(X_i\) passarão pelos mesmos atuadores na mesma ordem e
+não farão acessos a posições não sequenciais de memória, a paralelização deste
+algoritmo não foi afetado pelos principais fatores que degradam a performance
+neste tipo de arquitetura, sendo eles, respectivamente, \textit{branching
+divergence} e acessos \textit{non-coalesced} à memória.
+
+As próximas seções são dedicadas aos processos de implementação e aos resultados
+obtidos.
+
+
+\section {Análise da execução sequencial}
+
+Com o intuito de identificar qual trecho do programa possui o maior potencial de
+paralelização, isto é, onde a execução permanece por mais tempo, a ferramenta
+\texttt{gprof} foi utilizada.
+
+\section{Resultados}
+
+
+
+\section{Conclusões}
+
+
+
+\bibliographystyle{sbc}
+\bibliography{sbc-template}
+
+\end{document}
