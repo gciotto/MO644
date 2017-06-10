@@ -109,11 +109,11 @@ void mm2_cpu(float *A, float *B, float *C, float *D,
 void mm2_OMP(float *A, float *B, float *C, float *D,
              float *E) {
 
-#pragma omp target device(CLOUD)
-#pragma omp map(to: A[:N*N], B[:N*N) map(from: C[:N*N])
-#pragma omp parallel for
+#pragma omp target map(to: A[:N*N], B[:N*N], D[:N*N]) map(tofrom: C[:N*N], E[:N*N]) device(CLOUD)
+{
+#   pragma omp parallel for
     for (int i = 0; i < N; i++) {
-#pragma omp data map (to: A[i * N : (i+1) * N]) map(from: C[ i * N : (i+1) * N])
+#     pragma omp target data map (to: A[i * N : (i+1) * N]) map(tofrom: C[ i * N : (i+1) * N])
       for (int j = 0; j < N; j++) {
         C[i * N + j] = 0.0;
         for (int k = 0; k < N; ++k) {
@@ -122,11 +122,9 @@ void mm2_OMP(float *A, float *B, float *C, float *D,
       }
     }
 
-#pragma omp target device(CLOUD)
-#pragma omp map(to: C[:N*N], D[:N*N) map(from: E[:N*N])
-#pragma omp parallel for
+#   pragma omp parallel for
     for (int i = 0; i < N; i++) {
-#pragma omp data map (to: C[i * N : (i+1) * N]) map(from: E[ i * N : (i+1) * N])
+#    pragma omp target data map(to:C[i * N : (i+1) * N]) map (tofrom: E[ i * N : (i+1) * N])
       for (int j = 0; j < N; j++) {
         E[i * N + j] = 0.0;
         for (int k = 0; k < N; ++k) {
@@ -134,6 +132,8 @@ void mm2_OMP(float *A, float *B, float *C, float *D,
         }
       }
     }
+}
+
 }
 
 int main(int argc, char **argv) {
