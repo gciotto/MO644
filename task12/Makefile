@@ -1,7 +1,7 @@
 APP_NAME=code-t12-cloud
 CLANG_FLAGS=-fopenmp -omptargets=x86_64-unknown-linux-spark
 
-all: clean
+all:
 	clang $(CLANG_FLAGS) $(APP_NAME).c -o $(APP_NAME)
 
 clean:
