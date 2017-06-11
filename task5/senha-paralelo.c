@@ -111,3 +111,61 @@ int main ()
 	free (break_zip_threads);
 	free (id);
 }
+
+/*
+
+Machine Info:
+
+Architecture:          x86_64
+CPU op-mode(s):        32-bit, 64-bit
+Byte Order:            Little Endian
+CPU(s):                4
+On-line CPU(s) list:   0-3
+Thread(s) per core:    2
+Core(s) per socket:    2
+Socket(s):             1
+NUMA node(s):          1
+Vendor ID:             GenuineIntel
+CPU family:            6
+Model:                 42
+Model name:            Intel(R) Core(TM) i3-2330M CPU @ 2.20GHz
+Stepping:              7
+CPU MHz:               2199.865
+CPU max MHz:           2200.0000
+CPU min MHz:           800.0000
+BogoMIPS:              4392.29
+Virtualization:        VT-x
+L1d cache:             32K
+L1i cache:             32K
+L2 cache:              256K
+L3 cache:              3072K
+NUMA node0 CPU(s):     0-3
+Flags:                 fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush dts acpi mmx fxsr sse sse2 ss ht tm pbe syscall nx rdtscp lm constant_tsc arch_perfmon pebs bts rep_good nopl xtopology nonstop_tsc aperfmperf pni pclmulqdq dtes64 monitor ds_cpl vmx est tm2 ssse3 cx16 xtpr pdcm pcid sse4_1 sse4_2 x2apic popcnt tsc_deadline_timer xsave avx lahf_lm epb tpr_shadow vnmi flexpriority ept vpid xsaveopt dtherm arat pln pts
+
+Tests results:
+
+arq1.in:
+Senha:10000
+62.247894
+
+arq2.in:
+Senha:100000
+623.336350
+
+arq3.in:
+Senha:450000
+577.715237
+
+arq4.in:
+Senha:310000
+485.998859
+
+arq5.in:
+Senha:65000
+40.785986
+
+arq6.in:
+Senha:245999
+898.885159
+
+*/
