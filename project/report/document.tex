@@ -5,13 +5,14 @@
 \usepackage{graphicx,url}
 \usepackage{csvsimple}
 \usepackage{subfigure}
-
+\usepackage{algorithm}
+\usepackage{algpseudocode}
 \usepackage{listings}
 \usepackage{amssymb}% http://ctan.org/pkg/amssymb
 \usepackage{pifont}% http://ctan.org/pkg/pifont
 \newcommand{\cmark}{\ding{51}}%
 \newcommand{\xmark}{\ding{55}}%
-
+\usepackage{amsmath}
 \usepackage{multirow}
 \usepackage[brazil]{babel}    
 \usepackage[utf8]{inputenc}
@@ -150,10 +151,18 @@ método \texttt{pass} de cada um dos \(M\) atuadores.
 Desta forma, em linhas gerais, \(I * N * M\) iterações serão executadas apenas
 neste trecho de código. É importante ressaltar que os dois \textit{loops}
 responsáveis pela iteração sobre as condições iniciais podem ser classificados
-como \textit{doall loops} e, portanto, podem ser paralelizados, contrariamente,
-ao mais interior e aquele da função \texttt{performOneTurn}, cujas iterações
-dependem obrigatoriamente de suas anteriores, sendo assim, portanto,
-classificados como \textit{doacross loops}.
+como \textit{doall loops} e, portanto, podem ser paralelizados. Isso porque o
+processo de iteração de uma condição inicial \(X_{i1}\) é
+totalmente independente do processo associado à condição
+\(X_{i2}\). Em oposição, o laço mais interior e aquele presente na função
+\texttt{performOneTurn} são classificados como \textit{doacross loops}, visto
+que as iterações executadas por eles dependem obrigatoriamente de resultados
+gerados por iterações anteriores. Essa afirmação é facilmente verificada em
+ambos os casos: para que a volta de índice \(i\) seja executada, ela
+necessita dos resultados que as de índices \(i - 1, i - 2, \ldots, 0\)
+produziram, e para que o estado do életron seja calculado no atuador \(M_i\), é
+necessário que os estados associados aos atuadores \(M_{i-1}, M_{i-2},\ldots,
+M_{0}\) sejam conhecidos.
 
 % \begin{table}[h]
 %     \centering
@@ -175,13 +184,97 @@ classificados como \textit{doacross loops}.
 
 \section {Paralelização}
 
+Esta seção é dedicada ao detalhamento do processo de implementação de um
+algoritmo paralelo baseado em CUDA e das principais dificuldades encontradas e
+como elas foram resolvidas.
+
+\subsection{Implementação}
+
+A fim de paralelizar a execução dos \textit{doall loops} detectados na seção
+anterior, distribui-se a computação de cada condição inicial em uma
+\textit{thread} distinta. Como discutido nesta mesma seção, isso pode ser
+realizado dado que tais cálculos são completamente independentes entre si.
+
+CUDA distribui as \textit{threads} em blocos unidimensionais, bidimensionais ou
+tridimensionais de até 1024 \textit{threads}. Essa limitação existe devido ao
+fato de que todas as \textit{threads} de um mesmo bloco residem no mesmo
+\textit{core} e, desta forma, compartilham memória e tempo de processamento
+\cite{cuda}. A multidimensionalidade dos blocos garante que as \textit{threads}
+sejam identificadas mais facilmente de acordo com a sua aplicação. No nosso
+caso, por exemplo, como as condições inicias são determinadas a partir de uma
+tupla \((i,j)\), utilizamos blocos de duas dimensões. Adicionalmente, tendo em
+vista que a quantidade máxima de \textit{threads} por bloco é 1024, adota-se,
+neste artigo, blocos de \(32\times32\). Assim como as \textit{threads}, blocos
+também são distribuídos em \textit{grids} de uma, duas ou três dimensões. Tendo
+em vista que a motivação para este tipo de divisão é a mesma que a explicada
+anteriormente, utilizaremos também \textit{grids} bidimensionais com dimensões
+\(\frac{I_x}{32}\times\frac{I_y}{32}\), em que \(I_x\) e \(I_y\) representam as
+dimensões do conjunto de condições iniciais.
+
+\textit{Threads} são executadas simultaneamente em blocos de 32, denominados
+\textit{warps}. Tais blocos rodam em uma arquitetura SIMD, isto é, uma única
+instrução é capaz de realizar a mesma operação para todas as suas
+\textit{threads}. \textit{Warps} são executadas paralelamente por
+\textit{streaming multiprocessors}, ou simplesmente \textit{SMs}, cuja
+capacidade depende da \textit{compute capability} da GPU. A escolha do número de
+\textit{threads} por bloco também deve ser influenciada por essa capacidade, já
+que deseja-se maximizar o uso de um \textit{SM}. Para a GPU \textit{Geforce
+GTX1080}, que foi utilizada nos testes, o número máximo de \textit{warps} por
+\textit{SM} é 64, totalizando, desta forma, 2048 \textit{threads} que podem ser
+executadas simultaneamente. A escolha de blocos de 1024
+\textit{threads} maxima, portanto, o uso de um \textit{SM}, à medida que 2
+blocos podem ser rodados paralelamente, ocupando, assim, toda a capacidade do
+respectivo \textit{SM}.
+
+Com a divisão de \textit{threads} em blocos e \textit{warps} já definida, a
+próxima etapa é implementar o \textit{kernel} que será executado em cada uma
+delas e que calculará, a partir de uma condição inicial \(X_i\), o respectivo
+vetor \(X_f\) após \(N\) voltas por \(M\)
+atuadores. Tal função recebe como parâmetro, além de \(N\) e \(M\), o vetor
+\(A\) de \texttt{struct} contendo os atributos que descrevem cada um dos \(M\)
+atuadores. É importante ressaltar que, inicialmente, a ideia era transmitir um
+vetor de objetos que herdassem da classe abstrata \texttt{DynamicSearch} e que
+possuíssem as suas próprias implementações dos métodos virtuais. Porém, conforme
+discutido na subseção \textbf{Dificuldades}, esse tipo de operação não é
+suportado por \textit{CUDA}. Adicionalmente, o \textit{kernel} recebe também
+como paramêtro o vetor $R$, cujo propósito é armazenar os resultados calculados
+por todas as \textit{threads}, de maneira que eles possam ser copiados para a
+memória da CPU posteriormente. Enfim, como a condição inicial depende dos
+índices \((i,j)\) da \textit{thread} em que ela será utilizada, ela pode ser
+calculada internamente e não necessita, portanto, ser transmitida ao
+\textit{kernel} através de parâmetros. O pseudo-código \ref{alg:cuda}, a seguir,
+exemplica as operações desenvolvidas por cada \textit{thread} na GPU.
+
+\begin{algorithm}
+\caption{\label{alg:cuda} \textit{Pseudo-código} do \textit{kernel} que é
+executado pela GPU} \begin{algorithmic}[1]
+  \Function{dynamicSearchKernel}{$A,M,N,R$}
+  	\State ${i} \gets \text{blockDim.y} * \text{blockIdx.y} + \text{threadIdx.y} $ \Comment{Índice y da \textit{thread}} 
+  	\State ${j} \gets \text{blockDim.x} * \text{blockIdx.x} + \text{threadIdx.x} $ \Comment{Índice x da \textit{thread}}  
+    \State ${X_i} \gets f(i,j) $ \Comment{Calcula condição inicial \(X_i\) em função de \(i\) e \(j\)}
+    \For{$n \gets 0$ to ${N}$} \Comment{Itera sobre o número de voltas}
+        \For{$m \gets 0$ to ${M}$} \Comment{Itera sobre o número de atuadores}
+        	\State $X_i \gets g_{A[m]} (X_i)$ \Comment{Altera \(X_i\) de acordo com atuador \(A[m]\)}
+    	\EndFor
+    \EndFor
+    \State ${R[i,j]} \gets X_i $ \Comment{Armazena resultado calculado}
+   \EndFunction
+
+\end{algorithmic}
+\end{algorithm}
+
+Vale lembrar que \(A\) e \(R\) devem ser alocados na memória do dispositivo
+através da chamada da função \texttt{cudaMalloc} e seus respectivos conteúdos
+devem ser copiados de/para a GPU através de \texttt{cudaMemCpy}. Ao fim, as
+memórias alocados são liberadas novamente por meio da função \texttt{memFree}.
+
+\subsection{Dificuldades}
+
 \section{Resultados}
 
 
 
 \section{Conclusões}
-
-
 
 \bibliographystyle{sbc}
 \bibliography{sbc-template}
