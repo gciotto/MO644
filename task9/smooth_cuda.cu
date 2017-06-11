@@ -1,8 +1,13 @@
+/*
+ * Task #9 - Parallel Programming
+ * 
+ * Gustavo Ciotto Pinton
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/time.h>
 #include <math.h>
-#define MASK_WIDTH 5
 
 #define COMMENT "Histogram_GPU"
 #define RGB_COMPONENT_COLOR 255
@@ -10,6 +15,9 @@
 #include <cuda.h>
 
 #define THREAD_PER_BLOCK 1024 /* Tesla k40 supports 1024 threads per block */
+
+/* Mask attributes  */
+#define MASK_WIDTH 5
 #define RADIUS (MASK_WIDTH-1)/2
 
 #define PIXEL(R,G,B) ( (PPMPixel) { .red = (R), .green = (G), .blue = (B)})
@@ -114,7 +122,8 @@ void writePPM(PPMImage *img) {
     fclose(stdout);
 }
 
-
+/* kernel function. It loads MASK_WIDTH rows containing the same number of elements as the number of threads per block +2 
+ into the shared memory and computes the new value for the pixel based on this data. */
 __global__ void cudaSmoothing (PPMPixel *data_in, PPMPixel *data_out, int columns, int rows) {
 
 	__shared__ PPMPixel shared_data [MASK_WIDTH][THREAD_PER_BLOCK + 2 * RADIUS];
@@ -130,10 +139,12 @@ __global__ void cudaSmoothing (PPMPixel *data_in, PPMPixel *data_out, int column
 		/* Populating shared memory */
 		for (j = 0; j < MASK_WIDTH; j++) {
 
+			/* Computes the index of the array corresponding to the column in row (j - RADIUS) */
 			int col_index = i + (j - RADIUS) * columns;
 
 			shared_data [j][shared_i] = PIXEL(0,0,0);
 
+			/* only if i is inside the image border */
 			if (col_index >= 0 && col_index < n)
 				shared_data [j][shared_i] = data_in [col_index];
 
@@ -165,6 +176,8 @@ __global__ void cudaSmoothing (PPMPixel *data_in, PPMPixel *data_out, int column
 			/* Iterates over columns */
 			for (k = - RADIUS; k <= RADIUS; k++) {
 
+				/* We must check if the current element is not in the border. In this case, we need to avoid
+				   summing the other side element */
 				if (i + k >= left_border && i + k < right_border) {
 
 					total_red += shared_data[j][shared_i +  k].red;
@@ -188,13 +201,20 @@ int main(int argc, char *argv[]) {
         printf("Too many or no one arguments supplied.\n");
     }
 
-//    double t_start, t_end;
+#ifdef PRINT_TIME
+    double t_start, t_end;
+#endif
+
     char *filename = argv[1]; //Recebendo o arquivo!;
     PPMImage *image = readPPM(filename);
     PPMImage *image_output = readPPM(filename);
 
     /* Number of elements in the image */
     int n = image->x * image->y;
+
+#ifdef PRINT_TIME
+    t_start = rtclock();
+#endif
 
     /* Allocating memory for image data in the device */
     int image_size = n * sizeof(PPMPixel);
@@ -216,7 +236,12 @@ int main(int argc, char *argv[]) {
     /* Copying computed result from device memory */
     cudaMemcpy(image_output->data, cuda_image_out, image_size, cudaMemcpyDeviceToHost);
 
+#ifdef PRINT_TIME
+    t_end = rtclock();
+	fprintf(stdout, "\n%0.6lfs\n", t_end - t_start);
+#else
     writePPM(image_output);
+#endif
 
     free(image->data);
     free(image);
