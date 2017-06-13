@@ -1,0 +1,125 @@
+<< Linear Algebra: 2 Matrix Multiplications (D=A.B; E=C.D) >>
+{
+  "created": false
+}
+SPARK_MAJOR_VERSION is set to 2, using Spark2
+Warning: Master yarn-cluster is deprecated since 2.0. Please use master "yarn" with specified deploy mode instead.
+17/06/13 11:27:56 WARN NativeCodeLoader: Unable to load native-hadoop library for your platform... using builtin-java classes where applicable
+17/06/13 11:27:57 INFO MetricsConfig: loaded properties from hadoop-metrics2-azure-file-system.properties
+17/06/13 11:27:57 INFO WasbAzureIaasSink: Init starting.
+17/06/13 11:27:57 INFO AzureIaasSink: Init starting. Initializing MdsLogger.
+17/06/13 11:27:57 INFO AzureIaasSink: Init completed.
+17/06/13 11:27:57 INFO WasbAzureIaasSink: Init completed.
+17/06/13 11:27:57 INFO MetricsSinkAdapter: Sink azurefs2 started
+17/06/13 11:27:57 INFO MetricsSystemImpl: Scheduled snapshot period at 60 second(s).
+17/06/13 11:27:57 INFO MetricsSystemImpl: azure-file-system metrics system started
+17/06/13 11:27:57 INFO Client: Requesting a new application from cluster with 4 NodeManagers
+17/06/13 11:27:57 INFO Client: Verifying our application has not requested more than the maximum memory capability of the cluster (25600 MB per container)
+17/06/13 11:27:57 INFO Client: Will allocate AM container, with 1408 MB memory including 384 MB overhead
+17/06/13 11:27:57 INFO Client: Setting up container launch context for our AM
+17/06/13 11:27:57 INFO Client: Setting up the launch environment for our AM container
+17/06/13 11:27:57 INFO Client: Preparing resources for our AM container
+17/06/13 11:27:57 INFO Client: Uploading resource file:/tmp/SparkJob-OmpCloud-fa37JncC.jar -> wasb://gciotto-2017-06-13t11-01-16-771z@gciottostorage.blob.core.windows.net/user/gciottossh/.sparkStaging/application_1497352224365_0006/SparkJob-OmpCloud-fa37JncC.jar
+17/06/13 11:27:58 INFO Client: Uploading resource file:/tmp/spark-0f5d912b-37cf-42f2-8db8-dbae7f3ded9a/__spark_conf__1606944971989701705.zip -> wasb://gciotto-2017-06-13t11-01-16-771z@gciottostorage.blob.core.windows.net/user/gciottossh/.sparkStaging/application_1497352224365_0006/__spark_conf__.zip
+17/06/13 11:27:58 INFO SecurityManager: Changing view acls to: gciottossh
+17/06/13 11:27:58 INFO SecurityManager: Changing modify acls to: gciottossh
+17/06/13 11:27:58 INFO SecurityManager: Changing view acls groups to: 
+17/06/13 11:27:58 INFO SecurityManager: Changing modify acls groups to: 
+17/06/13 11:27:58 INFO SecurityManager: SecurityManager: authentication disabled; ui acls disabled; users  with view permissions: Set(gciottossh); groups with view permissions: Set(); users  with modify permissions: Set(gciottossh); groups with modify permissions: Set()
+17/06/13 11:27:58 INFO Client: Submitting application application_1497352224365_0006 to ResourceManager
+17/06/13 11:27:59 INFO YarnClientImpl: Submitted application application_1497352224365_0006
+17/06/13 11:28:00 INFO Client: Application report for application_1497352224365_0006 (state: ACCEPTED)
+17/06/13 11:28:00 INFO Client: 
+	 client token: N/A
+	 diagnostics: AM container is launched, waiting for AM container to Register with RM
+	 ApplicationMaster host: N/A
+	 ApplicationMaster RPC port: -1
+	 queue: default
+	 start time: 1497353278783
+	 final status: UNDEFINED
+	 tracking URL: http://hn0-gciott.tx4ezeww1kku5h5cg4d50ghgha.jx.internal.cloudapp.net:8088/proxy/application_1497352224365_0006/
+	 user: gciottossh
+17/06/13 11:28:01 INFO Client: Application report for application_1497352224365_0006 (state: ACCEPTED)
+17/06/13 11:28:02 INFO Client: Application report for application_1497352224365_0006 (state: ACCEPTED)
+17/06/13 11:28:03 INFO Client: Application report for application_1497352224365_0006 (state: ACCEPTED)
+17/06/13 11:28:04 INFO Client: Application report for application_1497352224365_0006 (state: ACCEPTED)
+17/06/13 11:28:05 INFO Client: Application report for application_1497352224365_0006 (state: RUNNING)
+17/06/13 11:28:05 INFO Client: 
+	 client token: N/A
+	 diagnostics: N/A
+	 ApplicationMaster host: 10.0.0.6
+	 ApplicationMaster RPC port: 0
+	 queue: default
+	 start time: 1497353278783
+	 final status: UNDEFINED
+	 tracking URL: http://hn0-gciott.tx4ezeww1kku5h5cg4d50ghgha.jx.internal.cloudapp.net:8088/proxy/application_1497352224365_0006/
+	 user: gciottossh
+17/06/13 11:28:06 INFO Client: Application report for application_1497352224365_0006 (state: RUNNING)
+17/06/13 11:28:07 INFO Client: Application report for application_1497352224365_0006 (state: RUNNING)
+17/06/13 11:28:08 INFO Client: Application report for application_1497352224365_0006 (state: RUNNING)
+17/06/13 11:28:09 INFO Client: Application report for application_1497352224365_0006 (state: RUNNING)
+17/06/13 11:28:10 INFO Client: Application report for application_1497352224365_0006 (state: RUNNING)
+17/06/13 11:28:11 INFO Client: Application report for application_1497352224365_0006 (state: RUNNING)
+17/06/13 11:28:12 INFO Client: Application report for application_1497352224365_0006 (state: RUNNING)
+17/06/13 11:28:13 INFO Client: Application report for application_1497352224365_0006 (state: RUNNING)
+17/06/13 11:28:14 INFO Client: Application report for application_1497352224365_0006 (state: RUNNING)
+17/06/13 11:28:15 INFO Client: Application report for application_1497352224365_0006 (state: RUNNING)
+17/06/13 11:28:16 INFO Client: Application report for application_1497352224365_0006 (state: RUNNING)
+17/06/13 11:28:17 INFO Client: Application report for application_1497352224365_0006 (state: RUNNING)
+17/06/13 11:28:18 INFO Client: Application report for application_1497352224365_0006 (state: RUNNING)
+17/06/13 11:28:19 INFO Client: Application report for application_1497352224365_0006 (state: RUNNING)
+17/06/13 11:28:20 INFO Client: Application report for application_1497352224365_0006 (state: RUNNING)
+17/06/13 11:28:21 INFO Client: Application report for application_1497352224365_0006 (state: RUNNING)
+17/06/13 11:28:22 INFO Client: Application report for application_1497352224365_0006 (state: RUNNING)
+17/06/13 11:28:23 INFO Client: Application report for application_1497352224365_0006 (state: RUNNING)
+17/06/13 11:28:24 INFO Client: Application report for application_1497352224365_0006 (state: RUNNING)
+17/06/13 11:28:25 INFO Client: Application report for application_1497352224365_0006 (state: RUNNING)
+17/06/13 11:28:26 INFO Client: Application report for application_1497352224365_0006 (state: RUNNING)
+17/06/13 11:28:27 INFO Client: Application report for application_1497352224365_0006 (state: FINISHED)
+17/06/13 11:28:27 INFO Client: 
+	 client token: N/A
+	 diagnostics: N/A
+	 ApplicationMaster host: 10.0.0.6
+	 ApplicationMaster RPC port: 0
+	 queue: default
+	 start time: 1497353278783
+	 final status: SUCCEEDED
+	 tracking URL: http://hn0-gciott.tx4ezeww1kku5h5cg4d50ghgha.jx.internal.cloudapp.net:8088/proxy/application_1497352224365_0006/
+	 user: gciottossh
+17/06/13 11:28:27 INFO ShutdownHookManager: Shutdown hook called
+17/06/13 11:28:27 INFO ShutdownHookManager: Deleting directory /tmp/spark-0f5d912b-37cf-42f2-8db8-dbae7f3ded9a
+{
+  "content": null,
+  "metadata": {
+    "hdi_permission": "{\"owner\":\"gciottossh\",\"group\":\"supergroup\",\"permissions\":\"rw-r--r--\"}"
+  },
+  "name": "root/MO644/task12/4",
+  "properties": {
+    "appendBlobCommittedBlockCount": null,
+    "blobType": "BlockBlob",
+    "contentLength": 7418686,
+    "contentRange": "bytes 0-7418685/7418686",
+    "contentSettings": {
+      "cacheControl": null,
+      "contentDisposition": null,
+      "contentEncoding": null,
+      "contentLanguage": null,
+      "content{
+  "content": null,
+  "metadata": {
+    "hdi_permission": "{\"owner\":\"gciottossh\",\"group\":\"supergroup\",\"permissions\":\"rw-r--r--\"}"
+  },
+  "name": "root/MO644/task12/3",
+  "properties": {
+    "appendBlobCommittedBlockCount": null,
+    "blobType": "BlockBlob",
+    "contentLength": 7402654,
+    "contentRange": "bytes 0-7402653/7402654",
+    "contentSettings": {
+      "cacheControl": null,
+      "contentDisposition": null,
+      "contentEncoding": null,
+      "contentLanguage": null,
+      "contentOMPCLOUD Runtime: 76.901516s
+CPU Runtime: 38.299340s
+Non-Matching CPU-GPU Outputs: 0
