@@ -6,8 +6,12 @@ APP=code-t12-cloud
 
 for N in ${N_SET[@]}; do
 
+	set -x
+
 	make N=${N}
 
 	./${APP} > n${N}.out
+
+	set +x
 
 done

@@ -7,7 +7,9 @@
 #include <sys/time.h>
 
 // Size of the matrices
+#ifndef N
 #define N 1000
+#endif
 
 // Compare results with the reference
 #define RUN_TEST 1
@@ -17,7 +19,7 @@
 #define SPARSE 0
 #endif
 
-#define CLOUD 0
+#define CLOUD_DEVICE 0
 
 double rtclock() {
   struct timezone Tzp;
@@ -109,9 +111,9 @@ void mm2_cpu(float *A, float *B, float *C, float *D,
 void mm2_OMP(float *A, float *B, float *C, float *D,
              float *E) {
 
-#pragma omp target map(to: A[:N*N], B[:N*N], D[:N*N]) map(tofrom: C[:N*N], E[:N*N]) device(CLOUD)
+#pragma omp target map(to: A[:N*N], B[:N*N], D[:N*N]) map(tofrom: C[:N*N], E[:N*N]) device(CLOUD_DEVICE)
 {
-#   pragma omp parallel for
+#   pragma omp parallel for collapse (1)
     for (int i = 0; i < N; i++) {
 #     pragma omp target data map (to: A[i * N : (i+1) * N]) map(tofrom: C[ i * N : (i+1) * N])
       for (int j = 0; j < N; j++) {
@@ -122,7 +124,7 @@ void mm2_OMP(float *A, float *B, float *C, float *D,
       }
     }
 
-#   pragma omp parallel for
+#   pragma omp parallel for collapse (1)
     for (int i = 0; i < N; i++) {
 #    pragma omp target data map(to:C[i * N : (i+1) * N]) map (tofrom: E[ i * N : (i+1) * N])
       for (int j = 0; j < N; j++) {
@@ -158,7 +160,7 @@ int main(int argc, char **argv) {
   E_CLOUD = (float *)malloc(N * N * sizeof(float));
 
   fprintf(stdout,
-          "<< Linear Algebra: 2 Matrix Multiplications (D=A.B; E=C.D) >>\n");
+          "<< Linear Algebra: 2 Matrix Multiplications (D=A.B; E=C.D , N = %d) >>\n", N);
 
   iNt_array(A, B, C, D);
 
