@@ -1,93 +1,117 @@
-<< Linear Algebra: 2 Matrix Multiplications (D=A.B; E=C.D) >>
+<< Linear Algebra: 2 Matrix Multiplications (D=A.B; E=C.D , N = 1500) >>
 {
   "created": false
 }
 SPARK_MAJOR_VERSION is set to 2, using Spark2
 Warning: Master yarn-cluster is deprecated since 2.0. Please use master "yarn" with specified deploy mode instead.
-17/06/13 11:27:56 WARN NativeCodeLoader: Unable to load native-hadoop library for your platform... using builtin-java classes where applicable
-17/06/13 11:27:57 INFO MetricsConfig: loaded properties from hadoop-metrics2-azure-file-system.properties
-17/06/13 11:27:57 INFO WasbAzureIaasSink: Init starting.
-17/06/13 11:27:57 INFO AzureIaasSink: Init starting. Initializing MdsLogger.
-17/06/13 11:27:57 INFO AzureIaasSink: Init completed.
-17/06/13 11:27:57 INFO WasbAzureIaasSink: Init completed.
-17/06/13 11:27:57 INFO MetricsSinkAdapter: Sink azurefs2 started
-17/06/13 11:27:57 INFO MetricsSystemImpl: Scheduled snapshot period at 60 second(s).
-17/06/13 11:27:57 INFO MetricsSystemImpl: azure-file-system metrics system started
-17/06/13 11:27:57 INFO Client: Requesting a new application from cluster with 4 NodeManagers
-17/06/13 11:27:57 INFO Client: Verifying our application has not requested more than the maximum memory capability of the cluster (25600 MB per container)
-17/06/13 11:27:57 INFO Client: Will allocate AM container, with 1408 MB memory including 384 MB overhead
-17/06/13 11:27:57 INFO Client: Setting up container launch context for our AM
-17/06/13 11:27:57 INFO Client: Setting up the launch environment for our AM container
-17/06/13 11:27:57 INFO Client: Preparing resources for our AM container
-17/06/13 11:27:57 INFO Client: Uploading resource file:/tmp/SparkJob-OmpCloud-fa37JncC.jar -> wasb://gciotto-2017-06-13t11-01-16-771z@gciottostorage.blob.core.windows.net/user/gciottossh/.sparkStaging/application_1497352224365_0006/SparkJob-OmpCloud-fa37JncC.jar
-17/06/13 11:27:58 INFO Client: Uploading resource file:/tmp/spark-0f5d912b-37cf-42f2-8db8-dbae7f3ded9a/__spark_conf__1606944971989701705.zip -> wasb://gciotto-2017-06-13t11-01-16-771z@gciottostorage.blob.core.windows.net/user/gciottossh/.sparkStaging/application_1497352224365_0006/__spark_conf__.zip
-17/06/13 11:27:58 INFO SecurityManager: Changing view acls to: gciottossh
-17/06/13 11:27:58 INFO SecurityManager: Changing modify acls to: gciottossh
-17/06/13 11:27:58 INFO SecurityManager: Changing view acls groups to: 
-17/06/13 11:27:58 INFO SecurityManager: Changing modify acls groups to: 
-17/06/13 11:27:58 INFO SecurityManager: SecurityManager: authentication disabled; ui acls disabled; users  with view permissions: Set(gciottossh); groups with view permissions: Set(); users  with modify permissions: Set(gciottossh); groups with modify permissions: Set()
-17/06/13 11:27:58 INFO Client: Submitting application application_1497352224365_0006 to ResourceManager
-17/06/13 11:27:59 INFO YarnClientImpl: Submitted application application_1497352224365_0006
-17/06/13 11:28:00 INFO Client: Application report for application_1497352224365_0006 (state: ACCEPTED)
-17/06/13 11:28:00 INFO Client: 
+17/06/16 15:09:07 WARN NativeCodeLoader: Unable to load native-hadoop library for your platform... using builtin-java classes where applicable
+17/06/16 15:09:07 INFO MetricsConfig: loaded properties from hadoop-metrics2-azure-file-system.properties
+17/06/16 15:09:07 INFO WasbAzureIaasSink: Init starting.
+17/06/16 15:09:07 INFO AzureIaasSink: Init starting. Initializing MdsLogger.
+17/06/16 15:09:07 INFO AzureIaasSink: Init completed.
+17/06/16 15:09:07 INFO WasbAzureIaasSink: Init completed.
+17/06/16 15:09:07 INFO MetricsSinkAdapter: Sink azurefs2 started
+17/06/16 15:09:07 INFO MetricsSystemImpl: Scheduled snapshot period at 60 second(s).
+17/06/16 15:09:07 INFO MetricsSystemImpl: azure-file-system metrics system started
+17/06/16 15:09:08 INFO ConfiguredRMFailoverProxyProvider: Failing over to rm2
+17/06/16 15:09:08 INFO Client: Requesting a new application from cluster with 4 NodeManagers
+17/06/16 15:09:08 INFO Client: Verifying our application has not requested more than the maximum memory capability of the cluster (25600 MB per container)
+17/06/16 15:09:08 INFO Client: Will allocate AM container, with 15744 MB memory including 384 MB overhead
+17/06/16 15:09:08 INFO Client: Setting up container launch context for our AM
+17/06/16 15:09:08 INFO Client: Setting up the launch environment for our AM container
+17/06/16 15:09:08 INFO Client: Preparing resources for our AM container
+17/06/16 15:09:08 INFO Client: Uploading resource file:/tmp/SparkJob-OmpCloud-fa37JncC.jar -> wasb://gciotto-2017-06-16t14-07-12-324z@gciottostoragecanada.blob.core.windows.net/user/gciottossh/.sparkStaging/application_1497622361478_0009/SparkJob-OmpCloud-fa37JncC.jar
+17/06/16 15:09:08 INFO Client: Uploading resource file:/tmp/spark-ee048d56-78f3-4c5b-ab09-cec1be446cde/__spark_conf__5380265852783462128.zip -> wasb://gciotto-2017-06-16t14-07-12-324z@gciottostoragecanada.blob.core.windows.net/user/gciottossh/.sparkStaging/application_1497622361478_0009/__spark_conf__.zip
+17/06/16 15:09:08 INFO SecurityManager: Changing view acls to: gciottossh
+17/06/16 15:09:08 INFO SecurityManager: Changing modify acls to: gciottossh
+17/06/16 15:09:08 INFO SecurityManager: Changing view acls groups to: 
+17/06/16 15:09:08 INFO SecurityManager: Changing modify acls groups to: 
+17/06/16 15:09:08 INFO SecurityManager: SecurityManager: authentication disabled; ui acls disabled; users  with view permissions: Set(gciottossh); groups with view permissions: Set(); users  with modify permissions: Set(gciottossh); groups with modify permissions: Set()
+17/06/16 15:09:08 INFO Client: Submitting application application_1497622361478_0009 to ResourceManager
+17/06/16 15:09:09 INFO YarnClientImpl: Submitted application application_1497622361478_0009
+17/06/16 15:09:10 INFO Client: Application report for application_1497622361478_0009 (state: ACCEPTED)
+17/06/16 15:09:10 INFO Client: 
 	 client token: N/A
 	 diagnostics: AM container is launched, waiting for AM container to Register with RM
 	 ApplicationMaster host: N/A
 	 ApplicationMaster RPC port: -1
 	 queue: default
-	 start time: 1497353278783
+	 start time: 1497625749089
 	 final status: UNDEFINED
-	 tracking URL: http://hn0-gciott.tx4ezeww1kku5h5cg4d50ghgha.jx.internal.cloudapp.net:8088/proxy/application_1497352224365_0006/
+	 tracking URL: http://hn1-gciott.e31rfsm0w4tulggeal410roanc.vx.internal.cloudapp.net:8088/proxy/application_1497622361478_0009/
 	 user: gciottossh
-17/06/13 11:28:01 INFO Client: Application report for application_1497352224365_0006 (state: ACCEPTED)
-17/06/13 11:28:02 INFO Client: Application report for application_1497352224365_0006 (state: ACCEPTED)
-17/06/13 11:28:03 INFO Client: Application report for application_1497352224365_0006 (state: ACCEPTED)
-17/06/13 11:28:04 INFO Client: Application report for application_1497352224365_0006 (state: ACCEPTED)
-17/06/13 11:28:05 INFO Client: Application report for application_1497352224365_0006 (state: RUNNING)
-17/06/13 11:28:05 INFO Client: 
+17/06/16 15:09:11 INFO Client: Application report for application_1497622361478_0009 (state: ACCEPTED)
+17/06/16 15:09:12 INFO Client: Application report for application_1497622361478_0009 (state: ACCEPTED)
+17/06/16 15:09:13 INFO Client: Application report for application_1497622361478_0009 (state: ACCEPTED)
+17/06/16 15:09:14 INFO Client: Application report for application_1497622361478_0009 (state: ACCEPTED)
+17/06/16 15:09:15 INFO Client: Application report for application_1497622361478_0009 (state: RUNNING)
+17/06/16 15:09:15 INFO Client: 
 	 client token: N/A
 	 diagnostics: N/A
-	 ApplicationMaster host: 10.0.0.6
+	 ApplicationMaster host: 10.0.0.12
 	 ApplicationMaster RPC port: 0
 	 queue: default
-	 start time: 1497353278783
+	 start time: 1497625749089
 	 final status: UNDEFINED
-	 tracking URL: http://hn0-gciott.tx4ezeww1kku5h5cg4d50ghgha.jx.internal.cloudapp.net:8088/proxy/application_1497352224365_0006/
+	 tracking URL: http://hn1-gciott.e31rfsm0w4tulggeal410roanc.vx.internal.cloudapp.net:8088/proxy/application_1497622361478_0009/
 	 user: gciottossh
-17/06/13 11:28:06 INFO Client: Application report for application_1497352224365_0006 (state: RUNNING)
-17/06/13 11:28:07 INFO Client: Application report for application_1497352224365_0006 (state: RUNNING)
-17/06/13 11:28:08 INFO Client: Application report for application_1497352224365_0006 (state: RUNNING)
-17/06/13 11:28:09 INFO Client: Application report for application_1497352224365_0006 (state: RUNNING)
-17/06/13 11:28:10 INFO Client: Application report for application_1497352224365_0006 (state: RUNNING)
-17/06/13 11:28:11 INFO Client: Application report for application_1497352224365_0006 (state: RUNNING)
-17/06/13 11:28:12 INFO Client: Application report for application_1497352224365_0006 (state: RUNNING)
-17/06/13 11:28:13 INFO Client: Application report for application_1497352224365_0006 (state: RUNNING)
-17/06/13 11:28:14 INFO Client: Application report for application_1497352224365_0006 (state: RUNNING)
-17/06/13 11:28:15 INFO Client: Application report for application_1497352224365_0006 (state: RUNNING)
-17/06/13 11:28:16 INFO Client: Application report for application_1497352224365_0006 (state: RUNNING)
-17/06/13 11:28:17 INFO Client: Application report for application_1497352224365_0006 (state: RUNNING)
-17/06/13 11:28:18 INFO Client: Application report for application_1497352224365_0006 (state: RUNNING)
-17/06/13 11:28:19 INFO Client: Application report for application_1497352224365_0006 (state: RUNNING)
-17/06/13 11:28:20 INFO Client: Application report for application_1497352224365_0006 (state: RUNNING)
-17/06/13 11:28:21 INFO Client: Application report for application_1497352224365_0006 (state: RUNNING)
-17/06/13 11:28:22 INFO Client: Application report for application_1497352224365_0006 (state: RUNNING)
-17/06/13 11:28:23 INFO Client: Application report for application_1497352224365_0006 (state: RUNNING)
-17/06/13 11:28:24 INFO Client: Application report for application_1497352224365_0006 (state: RUNNING)
-17/06/13 11:28:25 INFO Client: Application report for application_1497352224365_0006 (state: RUNNING)
-17/06/13 11:28:26 INFO Client: Application report for application_1497352224365_0006 (state: RUNNING)
-17/06/13 11:28:27 INFO Client: Application report for application_1497352224365_0006 (state: FINISHED)
-17/06/13 11:28:27 INFO Client: 
+17/06/16 15:09:16 INFO Client: Application report for application_1497622361478_0009 (state: RUNNING)
+17/06/16 15:09:17 INFO Client: Application report for application_1497622361478_0009 (state: RUNNING)
+17/06/16 15:09:18 INFO Client: Application report for application_1497622361478_0009 (state: RUNNING)
+17/06/16 15:09:19 INFO Client: Application report for application_1497622361478_0009 (state: RUNNING)
+17/06/16 15:09:20 INFO Client: Application report for application_1497622361478_0009 (state: RUNNING)
+17/06/16 15:09:21 INFO Client: Application report for application_1497622361478_0009 (state: RUNNING)
+17/06/16 15:09:22 INFO Client: Application report for application_1497622361478_0009 (state: RUNNING)
+17/06/16 15:09:23 INFO Client: Application report for application_1497622361478_0009 (state: RUNNING)
+17/06/16 15:09:24 INFO Client: Application report for application_1497622361478_0009 (state: RUNNING)
+17/06/16 15:09:25 INFO Client: Application report for application_1497622361478_0009 (state: RUNNING)
+17/06/16 15:09:26 INFO Client: Application report for application_1497622361478_0009 (state: RUNNING)
+17/06/16 15:09:27 INFO Client: Application report for application_1497622361478_0009 (state: RUNNING)
+17/06/16 15:09:28 INFO Client: Application report for application_1497622361478_0009 (state: RUNNING)
+17/06/16 15:09:29 INFO Client: Application report for application_1497622361478_0009 (state: RUNNING)
+17/06/16 15:09:30 INFO Client: Application report for application_1497622361478_0009 (state: RUNNING)
+17/06/16 15:09:31 INFO Client: Application report for application_1497622361478_0009 (state: RUNNING)
+17/06/16 15:09:32 INFO Client: Application report for application_1497622361478_0009 (state: RUNNING)
+17/06/16 15:09:33 INFO Client: Application report for application_1497622361478_0009 (state: RUNNING)
+17/06/16 15:09:34 INFO Client: Application report for application_1497622361478_0009 (state: RUNNING)
+17/06/16 15:09:35 INFO Client: Application report for application_1497622361478_0009 (state: RUNNING)
+17/06/16 15:09:36 INFO Client: Application report for application_1497622361478_0009 (state: RUNNING)
+17/06/16 15:09:37 INFO Client: Application report for application_1497622361478_0009 (state: RUNNING)
+17/06/16 15:09:38 INFO Client: Application report for application_1497622361478_0009 (state: RUNNING)
+17/06/16 15:09:39 INFO Client: Application report for application_1497622361478_0009 (state: RUNNING)
+17/06/16 15:09:40 INFO Client: Application report for application_1497622361478_0009 (state: RUNNING)
+17/06/16 15:09:41 INFO Client: Application report for application_1497622361478_0009 (state: RUNNING)
+17/06/16 15:09:42 INFO Client: Application report for application_1497622361478_0009 (state: RUNNING)
+17/06/16 15:09:43 INFO Client: Application report for application_1497622361478_0009 (state: RUNNING)
+17/06/16 15:09:44 INFO Client: Application report for application_1497622361478_0009 (state: RUNNING)
+17/06/16 15:09:45 INFO Client: Application report for application_1497622361478_0009 (state: RUNNING)
+17/06/16 15:09:46 INFO Client: Application report for application_1497622361478_0009 (state: RUNNING)
+17/06/16 15:09:47 INFO Client: Application report for application_1497622361478_0009 (state: RUNNING)
+17/06/16 15:09:48 INFO Client: Application report for application_1497622361478_0009 (state: RUNNING)
+17/06/16 15:09:49 INFO Client: Application report for application_1497622361478_0009 (state: RUNNING)
+17/06/16 15:09:50 INFO Client: Application report for application_1497622361478_0009 (state: RUNNING)
+17/06/16 15:09:51 INFO Client: Application report for application_1497622361478_0009 (state: RUNNING)
+17/06/16 15:09:52 INFO Client: Application report for application_1497622361478_0009 (state: RUNNING)
+17/06/16 15:09:53 INFO Client: Application report for application_1497622361478_0009 (state: RUNNING)
+17/06/16 15:09:54 INFO Client: Application report for application_1497622361478_0009 (state: RUNNING)
+17/06/16 15:09:55 INFO Client: Application report for application_1497622361478_0009 (state: RUNNING)
+17/06/16 15:09:56 INFO Client: Application report for application_1497622361478_0009 (state: FINISHED)
+17/06/16 15:09:56 INFO Client: 
 	 client token: N/A
 	 diagnostics: N/A
-	 ApplicationMaster host: 10.0.0.6
+	 ApplicationMaster host: 10.0.0.12
 	 ApplicationMaster RPC port: 0
 	 queue: default
-	 start time: 1497353278783
+	 start time: 1497625749089
 	 final status: SUCCEEDED
-	 tracking URL: http://hn0-gciott.tx4ezeww1kku5h5cg4d50ghgha.jx.internal.cloudapp.net:8088/proxy/application_1497352224365_0006/
+	 tracking URL: http://hn1-gciott.e31rfsm0w4tulggeal410roanc.vx.internal.cloudapp.net:8088/proxy/application_1497622361478_0009/
 	 user: gciottossh
-17/06/13 11:28:27 INFO ShutdownHookManager: Shutdown hook called
-17/06/13 11:28:27 INFO ShutdownHookManager: Deleting directory /tmp/spark-0f5d912b-37cf-42f2-8db8-dbae7f3ded9a
+17/06/16 15:09:56 INFO Client: Deleting staging directory wasb://gciotto-2017-06-16t14-07-12-324z@gciottostoragecanada.blob.core.windows.net/user/gciottossh/.sparkStaging/application_1497622361478_0009
+17/06/16 15:09:56 WARN AzureFileSystemThreadPoolExecutor: Disabling threads for Delete operation as thread count 0 is <= 1
+17/06/16 15:09:56 INFO AzureFileSystemThreadPoolExecutor: Time taken for Delete operation is: 2 ms with threads: 0
+17/06/16 15:09:56 ERROR NativeAzureFileSystem: Failed delete directory wasb://gciotto-2017-06-16t14-07-12-324z@gciottostoragecanada.blob.core.windows.net/user/gciottossh/.sparkStaging/application_1497622361478_0009
+17/06/16 15:09:56 INFO ShutdownHookManager: Shutdown hook called
+17/06/16 15:09:56 INFO ShutdownHookManager: Deleting directory /tmp/spark-ee048d56-78f3-4c5b-ab09-cec1be446cde
 {
   "content": null,
   "metadata": {
@@ -120,6 +144,6 @@ Warning: Master yarn-cluster is deprecated since 2.0. Please use master "yarn" w
       "contentDisposition": null,
       "contentEncoding": null,
       "contentLanguage": null,
-      "contentOMPCLOUD Runtime: 76.901516s
-CPU Runtime: 38.299340s
+      "contentOMPCLOUD Runtime: 75.004150s
+CPU Runtime: 31.459285s
 Non-Matching CPU-GPU Outputs: 0
