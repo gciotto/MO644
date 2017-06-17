@@ -1,5 +1,5 @@
 /**
-*   Task #11 - Parallel Programming
+*   Task #12 - Parallel Programming
 *   Gustavo Ciotto Pinton - RA117136
 */
 #include <stdio.h>

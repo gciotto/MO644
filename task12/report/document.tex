@@ -21,23 +21,27 @@
 \section{Exercício}
 
 A tabela \ref{tab:resultados}, logo abaixo, contém dados de execuções variando
-\(N\) de 100 até 5000 para um \textit{cluster Spark} com 6 nós (2
+\(N\) de 100 até 10000 para um \textit{cluster Spark} com 6 nós (2
 \textit{masters} e 4 \textit{workers}) criado no leste do Canadá, conforme
-figura \ref{fig:dashboard}. Todos os testes foram executados no
-\textit{parsusy} e os tempos das execuções \textit{serial} e paralelo estão
-representados em segundos. Adicionalmente, foram utilizadas as \textit{flags} \texttt{--executor-memory 15g}, \texttt{--driver-memory 15g},
-\texttt{--driver-cores 8} e \texttt{--executor-cores 8} para a configuração
-do ambiente de execução nos nós da \textit{cloud}.
+figura \ref{fig:dashboard}. Todos os testes foram executados no \textit{parsusy}
+e os tempos das execuções \textit{serial} e paralelo estão representados em
+segundos. Adicionalmente, foram utilizadas as \textit{flags}
+\texttt{--executor-memory 15g}, \texttt{--driver-memory 15g},
+\texttt{--driver-cores 8} e \texttt{--executor-cores 8} para a configuração do
+ambiente de execução nos nós da \textit{cloud}.
 
 \begin{table}[h]
     \centering
+    \footnotesize
 	\caption{\label{tab:resultados} Resultados obtidos para alguns valores de \(N\).} 
-	\begin{tabular}{| c | c | c | c | c | c | c | c |}
+	\begin{tabular}{| c | c | c | c | c | c | c | c | c | c |}
 		\hline
-		 & \textbf{100} & \textbf{1000} & \textbf{1500} & \textbf{2000} &  \textbf{2500} & \textbf{3500} & \textbf{5000}\\\hline 
-		 Serial (s) & 0.015  & 8.294 & 31.459 & 87.655 & 251.407 & 861.234 & 2505.961 \\\hline 
-		 Paralelo (s) & 63.035 & 79.315 & 75.004 & 87.323 & 107.012 & 175.825 & 349.596 \\\hline 
-		 Speedup & 0.0002 & 0.105  & 0.419  & 1.004 & 2.349 & 4.898 & 7.168 \\\hline
+		 & \textbf{100} & \textbf{1000} & \textbf{1500} & \textbf{2000} & 
+		 \textbf{2500} & \textbf{3500} & \textbf{5000} & \textbf{7500} &
+		 \textbf{10000} \\\hline Serial (s) & 0.015  & 8.294 & 31.459 & 87.655 &
+		 251.407 & 861.234 & 2505.961 & 9542.665 & 18793.245 \\\hline Paralelo (s) &
+		 63.035 & 79.315 & 75.004 & 87.323 & 107.012 & 175.825 & 349.596 & 1297.185 & 2217.631 \\\hline Speedup & 0.0002 & 0.105  & 0.419 &
+		 1.004 & 2.349 & 4.898 & 7.168 & 7.356 & 8.474 \\\hline
 		
 	\end{tabular}
 \end{table}
@@ -58,12 +62,16 @@ criadas no \textit{Azure}.
 
 \vspace{12pt}
 
-As figuras \ref{fig:nodes} e \ref{fig:event} são capturas de tela da
-interface \textit{web} de monitoração do \textit{Spark} para a execução com \(N=100\). É possível
-observar, através da primeira, quais nós foram utilizados para o processamento
-e qual deles foi usado como \textit{master} e, a partir da segunda, a fração de
-tempo em que cada fase correspondente à primeira claúsula \texttt{data map}
-levou para ser executada.
+As figuras \ref{fig:nodes} e \ref{fig:event} são capturas de tela da interface
+\textit{web} de monitoração do \textit{Spark} para a execução com \(N=100\). É
+possível observar, através da primeira, quais nós foram utilizados para o
+processamento e qual deles foi usado como \textit{master} e, a partir da
+segunda, a fração de tempo em que cada fase correspondente à primeira claúsula
+\texttt{data map} levou para ser executada. Conforme figura
+\ref{fig:nodes}, observa-se a presença de quatro nós: três deles agem
+como \textit{executor}, enquanto que o quarto, como \textit{driver} ou
+\textit{master}.
+
 
 \begin{figure}[h!] 
     \centering
@@ -80,21 +88,16 @@ levou para ser executada.
     \label{fig:event}
 \end{figure}
 
-Observa-se a presença de quatro nós neste caso. Três deles agem como
-\textit{executor}, enquanto que o quarto, como \textit{driver} ou
-\textit{master}.
-
-\vspace{12pt}
-
 A figura \ref{fig:event5000}, por sua vez, foi obtida para \(N = 7500\).
-Verifica-se que, em comparação com a imagem \ref{fig:event}, a fração correspondente ao tempo de
-computação (barra verde) para \( N = 7500\) é muito superior ao caso \(N =
-100\). Tal fato se traduz em um maior \textit{speedup} para o último caso,
-visto que um volume maior de cálculo é transferido da CPU para os
-nós da \textit{cloud}. Observa-se também, que o intervalo de
-\textit{offloading} é muito inferior àquele de computação, indicando, desta
-forma, que todo o \textit{overhead} de transferência de dados pode ser
-completamente justificado pelos ganhos produzidos pela computação distribuída.
+Verifica-se que, em comparação com a imagem \ref{fig:event}, a fração
+correspondente ao tempo de computação (barra verde) para \( N = 7500\) é muito
+superior ao caso \(N = 100\). Tal fato se traduz em um maior \textit{speedup}
+para a última execução, visto que um volume maior de cálculo é transferido da
+CPU para os nós da \textit{cloud} e, dessa forma, a capacidade dos nós é melhor
+aproveitada. Observa-se também, que o intervalo de \textit{offloading} é muito
+inferior àquele de computação, indicando, assim, que todo o \textit{overhead} de
+transferência de dados torna-se cada vez menos importante à medida que \(N\)
+cresce, impactando menos no cálculo do \textit{speedup}.
 
 \begin{figure}[h!] 
     \centering
