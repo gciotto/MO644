@@ -7,6 +7,7 @@
 \usepackage{subfigure}
 \usepackage{algorithm}
 \usepackage{algpseudocode}
+\usepackage{placeins}
 \usepackage{listings}
 \usepackage{amssymb}% http://ctan.org/pkg/amssymb
 \usepackage{pifont}% http://ctan.org/pkg/pifont
@@ -245,6 +246,7 @@ calculada internamente e não necessita, portanto, ser transmitida ao
 \textit{kernel} através de parâmetros. O pseudo-código \ref{alg:cuda}, a seguir,
 exemplica as operações desenvolvidas por cada \textit{thread} na GPU.
 
+
 \begin{algorithm}
 \caption{\label{alg:cuda} \textit{Pseudo-código} do \textit{kernel} que é
 executado pela GPU} \begin{algorithmic}[1]
@@ -270,11 +272,187 @@ memórias alocados são liberadas novamente por meio da função \texttt{memFree
 
 \subsection{Dificuldades}
 
+Duas principais dificuldades foram encontradas no desenvolvimento da solução
+paralela. Elas serão abordadas nas próximas subseções.
+
+\subsubsection{Objetos com métodos virtuais}
+
+Uma das principais classes que compõem o algoritmo sequencial é a classe
+abstrata \texttt{RingElement}, cujo principal propósito é fornecer uma base para
+a implementação de objetos capazes de representar um atuador. Na nossa
+aplicação, por exemplo, são fornecidas três classes que herdam diretamente de
+\texttt{RingElement}: \texttt{Drift}, \texttt{Quadrupole} e \texttt{Sextupole}.
+Tais classes fornecem uma implementação ao método virtual \texttt{pass()},
+dependendo, evidentemente, de como influenciam na dinâmica de um elétron. O
+principal objetivo buscado ao empregar esse modelo de implementação é fornecer
+uma maneira simples e rápida para a adição de diferentes atuadores.
+
+Assim como na solução sequencial, buscou-se utilizar essa abstração também na
+implementação de um \textit{kernel} capaz de ser executado na GPU. A princípio,
+portanto, tal \textit{kernel} receberia, como parâmetro, um vetor de objetos
+cujas classes herdassem de \texttt{RingElement} e, internamente, chamaria os
+métodos \texttt{pass()} corretamente de acordo com a classe derivada de cada
+elemento do vetor. Entretanto, a concretização desta proposta não foi possível, graças a uma
+limitação presente em \textit{CUDA}. Segundo \cite{virtual}, não é permitido
+transmitir um objeto de uma classe com métodos virtuais como parâmetro a uma
+função \texttt{\_\_global\_\_}. Isso porque, de acordo com este mesmo documento,
+a tabela de funções virtuais é colocada em uma posição de memória constante
+ou global pelo compilador \texttt{nvcc} e, desta forma, é inacessível
+internamente ao dispositivo.
+
+A solução empregada a fim de contornar esse problema foi utilizar uma
+\texttt{struct} contendo todos os atributos de todas as classes derivadas de
+\texttt{RingElement}. Apesar do fato de que esta solução não otimiza o consumo
+de memória da GPU, sua simplicidade torna a adição de novos atuadores próxima da
+maneira original da solução sequencial.
+
+\subsubsection{Divergência das operações em ponto flutuante}
+
+Após que os primeiros resultados da solução paralela foram obtidos, sua
+comparação com aqueles da aplicação sequencial revelou que apenas um subconjunto
+bem reduzido dos vetores finais \(X_f\) divergia e, na maioria das vezes, essa
+divergência era encontrada a partir da terceira ou quarta casas decimais. Para
+\(N = 10\) voltas, \(M = 10000\) atuadores e um conjunto de entrada de
+cardinalidade \(I = 10000\), por exemplo, dentre os 6100 vetores \(X_f\)
+encontrados pelas duas soluções, apenas um dentre eles divergia. A tabela
+\ref{tab:div}, abaixo, exemplifica este caso. Para a compilação do programa
+sequencial, foi utilizada explicitamente a \textit{flag} \texttt{-msse2},
+instruindo o compilador a empregar a extensão SSE para o cálculo das operações
+em ponto flutuante.
+
+\begin{table}[h]
+    \centering
+    \small
+	\caption{\label{tab:div} Vetores \(X_f\) divergentes entre as execuções
+	paralela e sequencial.}
+	\begin{tabular}{| c | c | c | c | c | c | c | }
+		\hline
+		 & \(X_f[0]\) & \(X_f[1]\) & \(X_f[2]\) & \(X_f[3]\) & \(X_f[4]\) & \(X_f[5]\) \\ \hline 
+		Serial & 0.021950 & 0.000676  & 0.000370  & 0.000091 & 0.0 & 0.0 \\\hline 
+		CUDA & 0.022004 & 0.000684  & -0.001117  & -0.000063 & 0.0 & 0.0 \\\hline 
+	\end{tabular}
+\end{table}
+
+Uma depuração profunda do código eliminou a primeira hipótese de que o
+\textit{kernel} escrito não era compatível com a versão \textit{serial}. A
+segunda hipótese, posteriormente confirmada, foi de que as pequenas variações
+observadas vinham do fato de que as operações de ponto flutuante fossem
+realizadas de maneira distinta entre a CPU e a GPU. Uma análise de
+\cite{ieee754} determinou que, de fato, diferenças poderiam ser encontradas em
+relação ao conjunto de instruções SSE, utilizado pela CPU para este tipo de
+cálculo no exemplo acima. Segundo este artigo, GPUs com \textit{compute
+capability} \(\ge2.0\), como a que foi utilizada nos testes, suportam um tipo de
+operação denominada \textit{fused-multiply-add} (ou simplesmente \textit{FMA})
+em pontos flutuantes de precisão simples e dupla, cujo principal objetivo é
+executar uma multiplicação e uma adição, isto é, computar \(X * Y + Z\), através
+de uma única instrução. Sua principal vantagem, além do ganho em performance por
+executar duas operações de uma única vez, é que ela realiza um arredondamento a
+menos que uma operação de multiplicação seguida por uma de adição. Desta forma,
+denotando-se um arredondamento por \(rn(x)\), o resultado de uma instrução
+\textit{FMA} seria \(rn(X*Y+Z)\), enquanto que o resultado de duas instruções,
+\(rn(rn(X*Y) + Z)\). Evidentemente, a precisão após dois arrendodamentos é
+inferior a um apenas. Ao contrário do que ocorre no \texttt{nvcc}, a operação
+\textit{FMA} não é habilitada por padrão no compilador \texttt{gcc} e o seu uso
+requer uma indicação explícita por meio de funções e \textit{flags} específicas.
+Tal discordância foi justamente a fonte da divergência observada em uma pequena
+parte das soluções. Outra evidência constatada durante os testes e que confirma
+essa afirmação baseia-se no fato de que para \(N\) superiores, a quantidade de
+vetores \(X_f\) é superior. Isso significa que as diferenças geradas nos
+cálculos intermediários são propagadas e, quanto maior for o valor de \(N\),
+mais elas serão potencializadas pelas iterações seguintes.
+
+Os autores de \cite{ieee754} afirmam que, para desabilitar o uso de instruções
+\textit{FMA} na GPU, é necessário utilizar funções intrínsicas que informem ao
+compilador explicitamente para não unir uma multiplicação e uma adição. Neste
+caso, \(X*Y + Z\) seria transformada na sentença
+\texttt{\_\_dadd\_rn(\_\_dmul\_rn(X,Y), Z)}. Aplicando-se este
+mesmo princípio à nossa aplicação,  a fim de obtermos os mesmos resultados
+que a execução sequencial, foi necessário o uso destas funções em todas as
+sentenças que realizavam algum tipo de operação aritmética, mantendo,
+inclusive, a ordem dos operandos. Desta forma, a sentença \texttt{r[0] +=
+length * r[1]} seria representada em CUDA por \path{__dadd_rn(r[0],
+__dmul_rn(length, r[1]))}, por exemplo. Em adição, o uso de instruções
+\textit{FMA} também pode ser desabilitado através da \textit{flag}
+\texttt{--fmad} do compilador \texttt{nvcc}. Caso ela seja modificada para 0 ou
+\textit{false}, o compilador não gerará instruções que utilizem essa
+\textit{feature}.
+
+É importante ressaltar que nenhuma das duas soluções apresentadas acima está
+mais certa ou mais errada do que a outra. De fato, elas tratam-se apenas de
+tentativas de se aproximar de um valor cuja representação não pode ser fielmente
+realizada por meio de 32 ou 64 \textit{bits}.
+
 \section{Resultados}
 
+Os resultados apresentados nesta seção foram gerados em um servidor com um
+processador \textit{Intel(R) Xeon(R) E5-2620 v4} e com uma GPU \textit{NVIDIA
+Tesla K40c} com \textit{compute capability} 3.5. O código sequencial foi
+compilado com o compilador \texttt{gcc} com as \textit{flags} \texttt{-O3},
+\texttt{-Wall}, \texttt{--std=c++11}, \texttt{-mfpmath=sse} e
+\texttt{-sse2}. As duas últimas garantem que a extensão SSE será utilizada e que
+as operações em ponto flutuante sigam o padrão IEEE 754, tanto para precisão
+simples quanto para a dupla, assim como o compilador CUDA \texttt{nvcc} garante
+\cite{ieee754}. Essas \textit{flags} impedem que outras extensões sejam
+utilizadas, tais como a x87, que emprega precisão dupla-extendida com
+registradores de 80 \textit{bits} com 64 deles dedicados somente à mantissa.
+\cite{monniaux:hal-00128124}. Operações realizadas nestes registradores
+produziriam resultados mais precisos, mas incompatíveis com os geradores com
+precisão dupla, que seguem estritamente o padrão IEEE 754.
 
+Duas implementações paralelas foram realizadas, uma com suporte a instruções
+\textit{FMA} e a outra compatível com a aplicação sequencial compilada conforme
+descrito acima. Para tal, foram propostas duas constantes, \texttt{CUDA\_FMA}
+e \texttt{CUDA\_INTRINSICS}, uma para cada implementação respectivamente. A
+escolha de qual delas deve ser utilizada é feita por meio da \textit{flag}
+\texttt{-D} no comando de compilação.
+
+A imagem \ref{fig:time} resume os resultados encontrados para
+as três execuções descritas acima com \(I = 10000\), \(M = 10000\) e quatro
+valores distintos de \(N\), sendo eles 10, 100, 1000 e 10000. Verifica-se que 
+o tempo de execução cresce proporcionalmente com o número de iterações, isto é,
+se o último cresce 10 vez, o outro também aumentará nesta mesma proporção. A
+figura \ref{fig:speedup}, por sua vez, contém os \textit{speedups} para cada uma
+das execuções. Em média, a solução que utiliza \textit{FMA} tem um
+\textit{speedup} de \textbf{26.821}, enquanto que a tradicional, \textbf{20.622}.
+
+\begin{figure}
+  \centering
+  \includegraphics[width=0.9\linewidth]{img/time}
+  \caption{Tempos de execução para diversos valores de \(N\)}
+  \label{fig:time}
+\end{figure}
+
+\begin{figure}
+  \centering
+  \includegraphics[width=0.9\linewidth]{img/speedup}
+  \caption{\textit{Speedup} para diversos valores de \(N\)}
+  \label{fig:speedup}
+\end{figure}
+
+Observa-se que a melhor performance foi obtida empregando-se instruções
+\textit{FMA} em CUDA. Conforme descrito na seção \textbf{Dificuldades}, além de
+uma melhor precisão, essa técnica também garante melhor desempenho, à medida que
+uma operação de multiplicação e outra de adição são realizadas por uma única
+instrução. Em oposição, ela não oferece exatamente os mesmos resultados que a
+simulação \textit{serial}, dado o fato que ela realiza apenas um arredondamento
+a cada instrução \textit{FMA}, ao contrário da solução tradicional, que produz
+dois arrendomentos para esta mesma operação.
 
 \section{Conclusões}
+
+Discutimos e avaliamos as principais dificuldades na paralelização, baseada em
+GPUs e CUDA, de um algoritmo de \textit{tracking} da dinâmica de életrons
+submetidos em um acelerador síncrotron, . Dentre as principais
+dificuldades, destacamos a impossibilidade de transmitir a funções
+\path{__global__} objetos com métodos virtuais como parâmetro \cite{virtual} e
+as divergências de resultados entre CPU e GPU causadas por maneiras distintas de
+se efetuar operações de pontos flutuantes. Propomos, ainda, duas implementações
+para o algoritmo sequencial: uma que utilizasse instruções
+\textit{fused-multiply-add} capazes de realizar a operação \(X*Y + Z\) de
+\textit{uma única vez} e a outra, semelhante ao método tradicional, isto é, que
+utizasse duas instruções separadas para esta mesma operação. Para a primeira,
+encontrados um \textit{speedup} médio de \textbf{26.821} e, para a segunda,
+\textbf{20.622}.
 
 \bibliographystyle{sbc}
 \bibliography{sbc-template}
