@@ -1,8 +1,8 @@
 /*
- * DynamicSearch.cpp
+ * DynamicSearch.cpp - The implemention of DynamicSearch and DefaultDynamicSearch classes.
  *
- *  Created on: May 14, 2017
- *      Author: gciotto
+ * Gustavo Ciotto Pinton - RA117136
+ * Parallel Programming - June/2017
  */
 
 #include "DynamicSearch.h"
@@ -12,6 +12,7 @@
 
 /* DynamicSearch class */
 
+/* Default constructor */
 DynamicSearch::DynamicSearch() {
 
 	this->positionThreshold = POSITION_THRESHOLD;
@@ -27,10 +28,8 @@ DynamicSearch::DynamicSearch() {
         this->result_set = (pos_t*) malloc (N_POINTS_X * N_POINTS_Y * sizeof(pos_t));
 }
 
-DynamicSearch::DynamicSearch(unsigned int e, double pThreshold,
-					double angThreshold, double deviationEnergyThreshold,
-					unsigned int turns )
-					: DynamicSearch() {
+DynamicSearch::DynamicSearch(unsigned int e, double pThreshold, double angThreshold, double deviationEnergyThreshold, unsigned int turns )
+		: DynamicSearch() {
 
 	this->positionThreshold = pThreshold;
 	this->angularThreshold = angThreshold;
@@ -43,8 +42,8 @@ DynamicSearch::DynamicSearch(unsigned int e, double pThreshold,
 
 void DynamicSearch::createRing() {
 
-	  // very simple ring model: a FODO cell repeated many times;
-	  // but it has the typical number of elements.
+	  /* very simple ring model: a FODO cell repeated many times;
+	     but it has the typical number of elements. */
 	  this->ring.clear();
 
           /* See performOneTurn(). Instead of adding many equal elements, we add only one
@@ -63,9 +62,10 @@ DynamicSearch::~DynamicSearch() {
         free(this->result_set);
 }
 
+/* Tests a solution r according to the defined constants */
 bool DynamicSearch::testSolution(pos_t r){
 
-	double s=r[0]+r[1]+r[2]+r[3]+r[4]+r[5];
+	double s = r[0] + r[1] + r[2] + r[3] + r[4] + r[5];
 	if ((std::isfinite(s)) && // is not a NaN or Inf
 		((abs(r[0]) < this->positionThreshold) &&
 		(abs(r[1]) < this->angularThreshold) &&
@@ -89,6 +89,7 @@ void DynamicSearch::performOneTurn(pos_t &e) {
 
 }
 
+/* Computes the magnitude of all arrays of result set and saves it into a file */
 void DynamicSearch::plot() {
 
         if (this->result_set != NULL) {
@@ -104,22 +105,18 @@ void DynamicSearch::plot() {
 
                                 double p, sum_r = r[0] + r[1] + r[2] + r[3] + r[4] + r[5];
 
-                                if (!std::isfinite(sum_r)) p = 1.0;
+                                if (!std::isfinite(sum_r)) p = INFINITY_MAGNITUDE;
                                 else {
-
                                         p = 0.0;
                                         for (unsigned int k = 0; k < 6; k++)
                                                 p += r[k] * r[k];
 
                                         p = sqrt(p);
                                 }
-
                                 out_file << p << " ";
                         }
-
                         out_file << std::endl;
                 }
-
                 out_file.close();
         }
 
@@ -127,6 +124,7 @@ void DynamicSearch::plot() {
 
 /* DefaultDynamicSearch class members*/
 
+/* Computes the dynamics of N_POINTS_X * N_POINTS_Y electrons in a single core */
 int DefaultDynamicSearch::dynamical_aperture_search() {
 
     double x[2] = {-0.10, +0.10};
@@ -134,6 +132,7 @@ int DefaultDynamicSearch::dynamical_aperture_search() {
 
     unsigned int nr_stable_points = 0;
 
+    /* Iterates over N_POINTS_X * N_POINTS_Y initial states */
     for(unsigned int i = 0; i < N_POINTS_X; ++i) {
       for(unsigned int j = 0; j < N_POINTS_Y; ++j) {
 
@@ -151,8 +150,10 @@ int DefaultDynamicSearch::dynamical_aperture_search() {
         }
 
         if (this->testSolution(this->result_set[index]))
-                printf ("%f %f %f %f %f %f (%d / %d) - (%d)\n", this->result_set[index][0], this->result_set[index][1], 
-                                this->result_set[index][2], this->result_set[index][3], this->result_set[index][4], this->result_set[index][5], 
+                printf ("%f %f %f %f %f %f (%d / %d) - (%d)\n", 
+				this->result_set[index][0], this->result_set[index][1], 
+                                this->result_set[index][2], this->result_set[index][3], 
+				this->result_set[index][4], this->result_set[index][5], 
                                 ++nr_stable_points , N_POINTS_X * N_POINTS_Y, index);
       }
     }

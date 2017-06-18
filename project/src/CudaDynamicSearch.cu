@@ -1,10 +1,11 @@
 /*
- * CudaDynamicSearch.cpp
+ * CudaDynamicSearch.cpp - The implemention of the CudaDynamicSearch class.
  *
- *  Created on: May 14, 2017
- *      Author: gciotto
+ * Gustavo Ciotto Pinton - RA117136
+ * Parallel Programming - June/2017
  */
 
+#include "DynamicSearch.h"
 #include "CudaDynamicSearch.h"
 #include "RingElement.h"
 #include <math.h>
@@ -19,6 +20,7 @@ typedef struct {
 
 } ring_element_t;
 
+/* Kernel which transfers result set magnitude computing to the GPU */
 __global__ void summaryKernel(pos_t *r, double* s) {
 
         int j = blockDim.x * blockIdx.x + threadIdx.x,
@@ -31,7 +33,7 @@ __global__ void summaryKernel(pos_t *r, double* s) {
                 double *t = r[index], sum = t[0] + t[1] + t[2] + t[3] + t[4] + t[5];
 
                 if (!isfinite(sum))
-                        s[index] = 1.0;
+                        s[index] = INFINITY_MAGNITUDE;
                 else {
                         s[index] = 0.0;
                         for (unsigned int k = 0; k < 6; k++)
@@ -43,6 +45,7 @@ __global__ void summaryKernel(pos_t *r, double* s) {
 
 }
 
+/* Performs the dynamics computing in the GPU */
 __global__ void dynamicSearchKernel(ring_element_t* c, pos_t *d, unsigned int turns, unsigned int repeat, unsigned int size) {
 
         double x[2] = {-0.10, +0.10};
@@ -55,6 +58,9 @@ __global__ void dynamicSearchKernel(ring_element_t* c, pos_t *d, unsigned int tu
 
 		int index = i * N_POINTS_X + j;
 
+/* If CUDA_INTRINSICS is defined, then float point operations, including operand order, are done exactly as the serial code. 
+   If CUDA_FMA is defined, then fused-multiply-add operations are used instead. 
+*/
 #ifdef CUDA_INTRINSICS
                 double posx = __dadd_rn(x[0], __dmul_rn(i, __ddiv_rn(x[1] - x[0], N_POINTS_X - 1.0))),
                        posy = __dadd_rn(y[0], __dmul_rn(j, __ddiv_rn(y[1] - y[0], N_POINTS_Y - 1.0)));
@@ -96,8 +102,8 @@ __global__ void dynamicSearchKernel(ring_element_t* c, pos_t *d, unsigned int tu
 						r[1] = __fma_rn(-r[0], __drcp_rn(aux.focal_distance), r[1]);
 						r[3] = __fma_rn( r[2], __drcp_rn(aux.focal_distance), r[3]);
 						#else
-						r[1] += -r[0]/aux.focal_distance;
-						r[3] += r[2]/aux.focal_distance;
+						r[1] += -r[0] / aux.focal_distance;
+						r[3] +=  r[2] / aux.focal_distance;
 						#endif
                                         }
                                         else if (aux.type == RingElement::SEXTUPOLE) {
@@ -131,6 +137,7 @@ CudaDynamicSearch::~CudaDynamicSearch() {
     cudaFree(this->cuda_result);
 }
 
+/* Allocates memory in the GPU device and launchs the kernel to be run. */
 int CudaDynamicSearch::dynamical_aperture_search() {
       
         ring_element_t *ring_element = (ring_element_t*) malloc (this->ring.size() * sizeof(ring_element_t)),
@@ -180,6 +187,7 @@ int CudaDynamicSearch::dynamical_aperture_search() {
 	return 0;
 }
 
+/* Uses the GPU to compute the magnitude of each array belonging to the result set. */
 void CudaDynamicSearch::plot() {
 
         if (this->result_set != NULL) {

@@ -1,8 +1,9 @@
 /*
- * ParallelTracking.cpp
+ * ParallelTracking.cpp - Instantiantes a new CudaDynamicSearch objects and performs 
+ * its search.
  *
- *  Created on: May 14, 2017
- *      Author: gciotto
+ * Gustavo Ciotto Pinton - RA117136
+ * Parallel Programming - June/2017
  */
 
 #include "CudaDynamicSearch.h"

@@ -1,21 +1,15 @@
 /*
- * RingElement.h
+ * RingElement.h - Provides the definition of a base class describing a simple ring actuator. All classes 
+ * must inherit from it in order to provide the implementation of a customised actuator.
  *
- *  Created on: May 14, 2017
- *      Author: gciotto
+ * Gustavo Ciotto Pinton - RA117136
+ * Parallel Programming - June/2017
  */
 
 #ifndef RINGELEMENT_H_
 #define RINGELEMENT_H_
 
 #include <string>
-
-#ifdef __CUDACC__
-#include <cuda.h>
-#define CUDA_CALLABLE_MEMBER __host__ __device__
-#else
-#define CUDA_CALLABLE_MEMBER
-#endif
 
 typedef double pos_t[6];
 
@@ -36,6 +30,7 @@ public:
                 return this->length;
         }
 
+        /* Abstract members that all classes inheriting from this  */
 	virtual void pass(pos_t &e) = 0;
 
 protected:

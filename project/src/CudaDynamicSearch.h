@@ -1,8 +1,8 @@
 /*
- * CudaDynamicSearch.h
+ * CudaDynamicSearch.h - Provides a derived class for DynamicSearch, using a GPU and CUDA to boost performance.
  *
- *  Created on: May 14, 2017
- *      Author: gciotto
+ * Gustavo Ciotto Pinton - RA117136
+ * Parallel Programming - June/2017
  */
 
 #ifndef CUDADYNAMICSEARCH_H_

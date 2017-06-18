@@ -1,8 +1,8 @@
 /*
- * RingElement.cpp
+ * RingElement.cpp - The implemention of RingElement and all derived classes.
  *
- *  Created on: May 14, 2017
- *      Author: gciotto
+ * Gustavo Ciotto Pinton - RA117136
+ * Parallel Programming - June/2017
  */
 
 
@@ -27,8 +27,8 @@ void Drift::pass(pos_t &e) {
 
 void Quadrupole::pass(pos_t &e) {
 
-	e[1] += -e[0]/this->focal_distance;
-	e[3] += +e[2]/this->focal_distance;
+	e[1] += -e[0] / this->focal_distance;
+	e[3] += +e[2] / this->focal_distance;
 }
 
 void Sextupole::pass(pos_t &e) {
