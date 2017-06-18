@@ -46,7 +46,7 @@ extension of the accelerator is divided into several elements capable of
 changing the state of each electron in a certain way, and it is sought to
 determine which initial conditions of \(X\) will meet some conditions after a
 certain number of revolutions. All the parallelization was based on GPUs and the
-CUDA library, obtaining gains of performance of the order of 3000\% in relation
+CUDA library, obtaining gains of performance of the order of 2500\% compared
 to the serial execution.
 \end{abstract}
      
@@ -59,7 +59,7 @@ algoritmo, divide-se toda a extensão do acelerador em diversos elementos capaze
 uma determinada maneira, e busca-se quais condições iniciais de \(X\) atenderão
 algumas condições após um determinado número de voltas. Toda a paralelização foi
 baseada em GPUs e na biblioteca CUDA, obtendo-se ganhos de performance da ordem
-de 3000\% em relação à execução serial.
+de 2500\% em relação à execução serial.
 \end{resumo}
 
 
@@ -219,13 +219,13 @@ instrução é capaz de realizar a mesma operação para todas as suas
 \textit{streaming multiprocessors}, ou simplesmente \textit{SMs}, cuja
 capacidade depende da \textit{compute capability} da GPU. A escolha do número de
 \textit{threads} por bloco também deve ser influenciada por essa capacidade, já
-que deseja-se maximizar o uso de um \textit{SM}. Para a GPU \textit{Geforce
-GTX1080}, que foi utilizada nos testes, o número máximo de \textit{warps} por
-\textit{SM} é 64, totalizando, desta forma, 2048 \textit{threads} que podem ser
-executadas simultaneamente. A escolha de blocos de 1024
-\textit{threads} maxima, portanto, o uso de um \textit{SM}, à medida que 2
-blocos podem ser rodados paralelamente, ocupando, assim, toda a capacidade do
-respectivo \textit{SM}.
+que deseja-se maximizar o uso de um \textit{SM}. Para a GPU \textit{NVIDIA Tesla
+K40c}, de \textit{compute capability} 3.5 e que foi utilizada nos testes, o
+número máximo de \textit{warps} por \textit{SM} é 64, totalizando, desta forma,
+2048 \textit{threads} que podem ser executadas simultaneamente \cite{compute}. A
+escolha de blocos de 1024 \textit{threads} maxima, portanto, o uso de um
+\textit{SM}, à medida que 2 blocos podem ser rodados paralelamente, ocupando,
+assim, toda a capacidade do respectivo \textit{SM}.
 
 Com a divisão de \textit{threads} em blocos e \textit{warps} já definida, a
 próxima etapa é implementar o \textit{kernel} que será executado em cada uma
