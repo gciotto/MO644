@@ -70,6 +70,34 @@ MO644 - Introdução à Computação Paralela}
 \titlepage
 \end{frame}
 
+\section{Introdução}
+\begin{frame}
+\frametitle{Introdução}
+
+\begin{columns} %
+\begin{column}{0.5\textwidth} %
+	\begin{itemize}
+	  \item Conjunto de vetores \(X^{i,j}_0\) representando estados de elétrons.
+	  \vspace{12pt}
+	  \item Elétrons submetidos a \(M\) atuadores em \(N\) voltas.
+	  \vspace{12pt}
+	  \item Simular quais vetores \(X^{i,j}_0\) atenderão a determinadas condições
+	  ao fim de \(N * M\) iterações.
+	\end{itemize}
+\end{column} %
+\begin{column}{0.5\textwidth}
+     \begin{figure}
+  \centering
+  \includegraphics[width=\linewidth]{img/sirius}
+  \caption{Acelerador \textit{Sirius}}
+  \label{fig:speedup}
+\end{figure}  
+      
+\end{column}
+\end{columns}
+
+\end{frame}
+
 %2
 \section{Análise do programa sequencial}
 \begin{frame}
@@ -226,7 +254,6 @@ MO644 - Introdução à Computação Paralela}
 \textit{speedup} de \textbf{26.821}, enquanto que a tradicional,
 \textbf{20.622}.
 \end{itemize}
-
 
 \begin{figure}
   \centering
