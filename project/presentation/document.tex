@@ -204,13 +204,13 @@ MO644 - Introdução à Computação Paralela}
   \Function{dynamicSearchKernel}{$A,M,N,R$}
   	\State ${i} \gets \text{blockDim.y} * \text{blockIdx.y} + \text{threadIdx.y} $ \Comment{Índice y da \textit{thread}} 
   	\State ${j} \gets \text{blockDim.x} * \text{blockIdx.x} + \text{threadIdx.x} $ \Comment{Índice x da \textit{thread}}  
-    \State ${X_i} \gets f(i,j) $ \Comment{Calcula condição inicial \(X_i\) em função de \(i\) e \(j\)}
+    \State ${X^{i,j}} \gets f(i,j) $ \Comment{Calcula condição inicial \(X_{i,j}\) em função de \(i\) e \(j\)}
     \For{$n \gets 0$ to ${N}$} \Comment{Itera sobre o número de voltas}
         \For{$m \gets 0$ to ${M}$} \Comment{Itera sobre o número de atuadores}
-        	\State $X_i \gets g_{A[m]} (X_i)$ \Comment{Altera \(X_i\) de acordo com atuador \(A[m]\)}
+        	\State $X^{i,j} \gets g_{A[m]} (X^{i,j})$ \Comment{Altera \(X_i\) de acordo com atuador \(A[m]\)}
     	\EndFor
     \EndFor
-    \State ${R[i,j]} \gets X_i $ \Comment{Armazena resultado calculado}
+    \State ${R[i,j]} \gets X^{i,j} $ \Comment{Armazena resultado calculado}
    \EndFunction
 \end{algorithmic}
 \end{algorithm}
@@ -275,6 +275,11 @@ MO644 - Introdução à Computação Paralela}
   \item \textit{It is not allowed to pass as an argument to a \path{__global__}
   function an object of a class derived from virtual base classes.} [NVIDIA.
   C/C++ language support]
+  
+  \item  A tabela de funções virtuais é colocada em uma posição de memória
+  constante ou global pelo compilador \texttt{nvcc}.
+
+  \vspace{12pt} 
 
   \item GPUs com \textit{compute capability} \(\ge2.0\): operação denominada
   \textit{fused-multiply-add} (\textit{FMA}) em pontos flutuantes de precisão

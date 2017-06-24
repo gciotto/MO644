@@ -108,7 +108,7 @@ Com o intuito de identificar qual trecho do programa possui o maior potencial de
 paralelização, a ferramenta \texttt{gprof} foi utilizada. Esse aplicativo é
 capaz de calcular o tempo de execução gasto para cada função, permitindo, assim,
 ao desenvolvedor uma visão global do desempenho do seu programa. Em
-essência, duas análises sõa oferecidas por ele, sendo elas, a \textit {flat
+essência, duas análises são oferecidas por ele, sendo elas, a \textit {flat
 profile} e a \textit{call graph}. A primeira mostra quanto tempo o programa
 gastou em cada função e quantas vezes tal função foi chamada. A segunda, por sua
 vez, permite, para cada função, visualizar quais outras funções ela chamou
@@ -241,7 +241,7 @@ que deseja-se maximizar o uso de um \textit{SM}. Para a GPU \textit{NVIDIA Tesla
 K40c}, de \textit{compute capability} 3.5 e que foi utilizada nos testes, o
 número máximo de \textit{warps} por \textit{SM} é 64, totalizando, desta forma,
 2048 \textit{threads} que podem ser executadas simultaneamente \cite{compute}. A
-escolha de blocos de 1024 \textit{threads} maxima, portanto, o uso de um
+escolha de blocos de 1024 \textit{threads} maximiza, portanto, o uso de um
 \textit{SM}, à medida que 2 blocos podem ser rodados paralelamente, ocupando,
 assim, toda a capacidade do respectivo \textit{SM}.
 
@@ -271,13 +271,13 @@ executado pela GPU} \begin{algorithmic}[1]
   \Function{dynamicSearchKernel}{$A,M,N,R$}
   	\State ${i} \gets \text{blockDim.y} * \text{blockIdx.y} + \text{threadIdx.y} $ \Comment{Índice y da \textit{thread}} 
   	\State ${j} \gets \text{blockDim.x} * \text{blockIdx.x} + \text{threadIdx.x} $ \Comment{Índice x da \textit{thread}}  
-    \State ${X_i} \gets f(i,j) $ \Comment{Calcula condição inicial \(X_i\) em função de \(i\) e \(j\)}
+    \State ${X^{i,j}} \gets f(i,j) $ \Comment{Calcula condição inicial \(X_{i,j}\) em função de \(i\) e \(j\)}
     \For{$n \gets 0$ to ${N}$} \Comment{Itera sobre o número de voltas}
         \For{$m \gets 0$ to ${M}$} \Comment{Itera sobre o número de atuadores}
-        	\State $X_i \gets g_{A[m]} (X_i)$ \Comment{Altera \(X_i\) de acordo com atuador \(A[m]\)}
+        	\State $X^{i,j} \gets g_{A[m]} (X^{i,j})$ \Comment{Altera \(X_i\) de acordo com atuador \(A[m]\)}
     	\EndFor
     \EndFor
-    \State ${R[i,j]} \gets X_i $ \Comment{Armazena resultado calculado}
+    \State ${R[i,j]} \gets X^{i,j} $ \Comment{Armazena resultado calculado}
    \EndFunction
 
 \end{algorithmic}
@@ -286,7 +286,8 @@ executado pela GPU} \begin{algorithmic}[1]
 Vale lembrar que \(A\) e \(R\) devem ser alocados na memória do dispositivo
 através da chamada da função \texttt{cudaMalloc} e seus respectivos conteúdos
 devem ser copiados de/para a GPU através de \texttt{cudaMemCpy}. Ao fim, as
-memórias alocados são liberadas novamente por meio da função \texttt{memFree}.
+memórias alocados são liberadas novamente por meio da função
+\texttt{cudaFree}.
 
 \subsection{Dificuldades}
 
