@@ -12,10 +12,11 @@ OBJS = DynamicSearch.o RingElement.o SerialTracking.o
 OBJS_ORIGINAL = tracking_skeleton.o
 
 NVCC = nvcc
-NVCCFLAGS = -std=c++11 -DCUDA_FMA
+NVCCFLAGS = -std=c++11 -DCUDA_INTRINSICS
 
 INPUT = $(wildcard input/*.dat)
 OUTPUT = output.dat
+DIFF_OUTPUT = diff.dat
 
 .PHONY: all clean run
 
@@ -36,7 +37,7 @@ $(APP_CUDA):
 clean:
 	rm -f *.o
 	rm -f $(APP_NAME) $(APP_ORIGINAL) $(APP_CUDA)
-	rm -f $(OUTPUT)
+	rm -f $(OUTPUT) $(DIFF_OUTPUT)
 
 run: clean $(APP_CUDA) $(APP_NAME)
 	@$(foreach IN, $(INPUT), \
@@ -51,6 +52,7 @@ run: clean $(APP_CUDA) $(APP_NAME)
 		cat parallel.dat >> $(OUTPUT); \
 		printf "\nSpeedup: " >> $(OUTPUT); \
 		echo "$${TIME_SERIAL} / $${TIME_PARALLEL}" | bc -l >> $(OUTPUT); \
-		diff parallel.dat serial.dat >> test.dat; )
+		printf "\n$(IN) ================================     ================     ================================\n\n" >> $(DIFF_OUTPUT); \
+		diff parallel.dat serial.dat >> $(DIFF_OUTPUT) | true ; )
 
 	@rm -f parallel.dat serial.dat
