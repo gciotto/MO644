@@ -175,7 +175,7 @@ int CudaDynamicSearch::dynamical_aperture_search() {
 		for (unsigned int j = 0; j < N_POINTS_Y ; j++){
 			unsigned int index = i * N_POINTS_X + j;
 			if (this->testSolution(this->result_set[index]))
-				printf ("%f %f %f %f %f %f (%d / %d) - (%d)\n", this->result_set[index][0], this->result_set[index][1], this->result_set[index][2], this->result_set[index][3], 
+				printf ("%.5f %.5f %.5f %.5f %.5f %.5f (%d / %d) - (%d)\n", this->result_set[index][0], this->result_set[index][1], this->result_set[index][2], this->result_set[index][3], 
                                                                         this->result_set[index][4], this->result_set[index][5], ++p , N_POINTS_X * N_POINTS_Y, index);
 		
 		}

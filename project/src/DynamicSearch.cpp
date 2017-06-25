@@ -150,7 +150,7 @@ int DefaultDynamicSearch::dynamical_aperture_search() {
         }
 
         if (this->testSolution(this->result_set[index]))
-                printf ("%f %f %f %f %f %f (%d / %d) - (%d)\n", 
+                printf ("%.5f %.5f %.5f %.5f %.5f %.5f (%d / %d) - (%d)\n", 
 				this->result_set[index][0], this->result_set[index][1], 
                                 this->result_set[index][2], this->result_set[index][3], 
 				this->result_set[index][4], this->result_set[index][5], 
