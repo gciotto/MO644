@@ -1,0 +1,44 @@
+
+input/input1.dat ================================     ================     ================================
+
+1680,1682c1680,1682
+< Search elapsed time : 0.248188
+< Plot elapsed time : 0.005186
+< Total elapsed time : 0.253374
+---
+> Search elapsed time : 5.66234
+> Plot elapsed time : 0.007053
+> Total elapsed time : 5.66939
+
+input/input2.dat ================================     ================     ================================
+
+1675,1677c1675,1677
+< Search elapsed time : 2.44692
+< Plot elapsed time : 0.004423
+< Total elapsed time : 2.45134
+---
+> Search elapsed time : 51.9192
+> Plot elapsed time : 0.007449
+> Total elapsed time : 51.9267
+
+input/input4.dat ================================     ================     ================================
+
+1674,1676c1674,1676
+< Search elapsed time : 244.717
+< Plot elapsed time : 0.004347
+< Total elapsed time : 244.722
+---
+> Search elapsed time : 5150.66
+> Plot elapsed time : 0.008894
+> Total elapsed time : 5150.67
+
+input/input3.dat ================================     ================     ================================
+
+1675,1677c1675,1677
+< Search elapsed time : 24.4663
+< Plot elapsed time : 0.004294
+< Total elapsed time : 24.4706
+---
+> Search elapsed time : 518.558
+> Plot elapsed time : 0.009247
+> Total elapsed time : 518.567
