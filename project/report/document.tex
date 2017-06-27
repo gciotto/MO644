@@ -192,8 +192,8 @@ necessário que os estados  \(X_{m-1}^{i,j}, X_{m-2}^{i,j}, \ldots, X_{0}^{i,j}
 	    \State ${X^{i,j}} \gets f(i,j) $ \Comment{Calcula condição inicial \(X^{i,j}\) em função de \(i\) e \(j\)}
 	    \For{$n \gets 0$ to ${N}$} \Comment{Itera sobre o número de voltas (\textbf{performOneTurn()})}
 	        \For{$m \gets 0$ to ${M}$} \Comment{Itera sobre o número de atuadores (\textbf{size()})} 
-	        \State $X^{i,j} \gets g_{A[m]} (X^{i,j})$
-	        \Comment{Altera \(X_i\) de acordo com atuador \(A[m]\) (\textbf{pass()})}
+	        \State $X^{i,j} \gets g_{A[m]} (X^{i,j})$ 
+	        \Comment{Muda \(X^{i,j}\) de acordo com atuador \(A[m]\) (\textbf{pass})}
 	    	\EndFor
 	    \EndFor
 	\EndFor
@@ -274,7 +274,7 @@ executado pela GPU} \begin{algorithmic}[1]
     \State ${X^{i,j}} \gets f(i,j) $ \Comment{Calcula condição inicial \(X_{i,j}\) em função de \(i\) e \(j\)}
     \For{$n \gets 0$ to ${N}$} \Comment{Itera sobre o número de voltas}
         \For{$m \gets 0$ to ${M}$} \Comment{Itera sobre o número de atuadores}
-        	\State $X^{i,j} \gets g_{A[m]} (X^{i,j})$ \Comment{Altera \(X_i\) de acordo com atuador \(A[m]\)}
+        	\State $X^{i,j} \gets g_{A[m]} (X^{i,j})$ \Comment{Altera \(X^{i,j}\) de acordo com atuador \(A[m]\)}
     	\EndFor
     \EndFor
     \State ${R[i,j]} \gets X^{i,j} $ \Comment{Armazena resultado calculado}
