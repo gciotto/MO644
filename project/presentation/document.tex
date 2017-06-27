@@ -109,7 +109,7 @@ MO644 - Introdução à Computação Paralela}
   \item Análise \textit{flat profile}: quanto tempo o programa gastou em cada
   função e quantas vezes tal função foi chamada.
   \item  97.43\% de todo o tempo gasto pelo programa está concentrado em apenas
-  6 funções, todas chamadas dentro de \texttt{dynamical\_aperture\_search()}.
+  6 funções, todas chamadas dentro de \texttt{dynamical\_search()}.
 \end{itemize}
 
 \vspace{-12pt}
@@ -162,7 +162,7 @@ MO644 - Introdução à Computação Paralela}
 	    \For{$n \gets 0$ to ${N}$} \Comment{Itera sobre o número de voltas (\textbf{performOneTurn()})}
 	        \For{$m \gets 0$ to ${M}$} \Comment{Itera sobre o número de atuadores (\textbf{size()})} 
 	        \State $X^{i,j} \gets g_{A[m]} (X^{i,j})$
-	        \Comment{Altera \(X_i\) de acordo com atuador \(A[m]\) (\textbf{pass()})}
+	        \Comment{Altera \(X^{i,j}\) de acordo com atuador \(A[m]\) (\textbf{pass()})}
 	    	\EndFor
 	    \EndFor
 	\EndFor
@@ -207,7 +207,8 @@ MO644 - Introdução à Computação Paralela}
     \State ${X^{i,j}} \gets f(i,j) $ \Comment{Calcula condição inicial \(X_{i,j}\) em função de \(i\) e \(j\)}
     \For{$n \gets 0$ to ${N}$} \Comment{Itera sobre o número de voltas}
         \For{$m \gets 0$ to ${M}$} \Comment{Itera sobre o número de atuadores}
-        	\State $X^{i,j} \gets g_{A[m]} (X^{i,j})$ \Comment{Altera \(X_i\) de acordo com atuador \(A[m]\)}
+        	\State $X^{i,j} \gets g_{A[m]} (X^{i,j})$ \Comment{Altera \(X^{i,j}\)
+        	de acordo com atuador \(A[m]\)}
     	\EndFor
     \EndFor
     \State ${R[i,j]} \gets X^{i,j} $ \Comment{Armazena resultado calculado}
